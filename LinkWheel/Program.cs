@@ -5,8 +5,7 @@ using CommandLine;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
-// https://github.com/mderu/LinkWheel/blob/main/Program.cs (for this file).
-// https://github.com/mderu/CodeLinks/blob/main/CodeLinks.csproj (for this file).
+// https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs (for this file).
 
 namespace LinkWheel
 {
