@@ -173,6 +173,12 @@ namespace LinkWheel
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
+            // Close if the user right clicked, middle clicked, or clicked some other way.
+            if (e.Button != MouseButtons.Left)
+            {
+                TopMost = false;
+                Close();
+            }
             Point diff = WheelCenterGlobal.Subtract(Cursor.Position);
             float mouseAngle = (float)(Math.Atan2(diff.Y, diff.X) * 180.0 / Math.PI) + 180.0f;
             float sweepAngle = 360.0f / wheelElements.Count;
