@@ -1,0 +1,203 @@
+This file is just a bunch of jotted down ideas. Some of them are outdated,
+some of them are things I didn't go with, some I'm still working on.
+
+Feel free to ignore this file.
+
+
+
+
+IDEL (IDE Links)
+ - A local Tray Tool + URL Schema/Protocol that opens the IDE associated
+   with the link given.
+   - The tray tools' purpose is to allow for users to quickly configure
+     where the IDE Links take them. Whenever a user opens an IDEL link,
+	 IDEL attempts to open the IDE, and IdelTray displays fields for
+	 what part of configuration was used, which files were opened, which
+	 regex triggered it, etc. Users can then adjust the configuration for
+	 the link they most recently ran, and press "Re-Open Link" to use the
+	 settings they just configured.
+	 
+	 
+The configuration flow is as follows:
+	 - If a .useridel file is found within the repository, respect that
+	   configuration as overrides to the .idel file in that directory.
+	   - If .useridel doesn't exist, assume .idel always overrides
+	     //root// scope. Repo maintainers shouldn't force users to not
+		 be allowed to use their own configuration.
+	 - If a .useridel file is only a string and not JSON, it skips reading
+	   the .idel file and uses the configuration that string points to
+	   in ~/.idel.d.
+	 - Look through the .idel.d directory in %USERPROFILE% or $HOME:
+	   - LS the directory. If modified times or new files show up,
+	     update the cached global config file. Note that we should not
+		 take into account any .idel file outside of ~/.idel.d, because
+		 those files cannot globally affect other repos; lazily evaluating
+		 those are also optimal in case changes frequently occur to those
+		 
+	   - Find the configuration associated with the repo, follow any
+	     parent set to create a full IDEL config.
+	   - Follow the link using the created IDEL config. 
+	   
+	   
+ - Schema for .idel files:
+// A special string for avoiding inheritance of the //root// config.
+"//unset//": {}
+// The default config
+"//root//": {}
+"my_config": {
+  // `parent`: An optional string specifying what configuration to
+  //     override. Defaults to "//root//". Set to "//unset//" to
+  //     avoid this behavior.
+  //     
+  //     This value can also be a relative path to a file.
+  "parent": "other_top-level_config_name",
+  // `editors`: A list of (path regex) to (IDE name) pairs. The regexes
+  //     respect the order of these pairs. All child regexes run before
+  //     their parents's.
+  "editors": [
+    {"path_regex_relative_to_repo_root": "IDE Name"}
+  ]
+  // `ide_settings`: A map of IDE settings to when a regex matches the
+  //     opened file. This is kept separate from `editors` because
+  //     the repository may have multiple IDE entry points, but similar
+  //     files and IDE preferences. The primary function of this property
+  //     is to open the correct project/solution/workspace for the given
+  //     file.
+  //
+  //     This ideally can be auto-generated in Windows using Everything,
+  //     may need manual configuration, or slow auto-search in POSIX
+  //     systems, or Windows where users don't want to install Everything.
+  //
+  //     Ideally, `ide_settings` should be set in the `.idel` file at the
+  //     root directory of the repo. In cases where users often need to
+  //     checkout a repo state before the .idel file was tracked, it is
+  //     recommended to mirror these in  `.useridel` as well.
+  "ide_settings": {
+    "vs": [
+	  {
+	    "./path/to/deeper/project/directory/.*": {
+		  "solution": "./path/to/deeper/project/directory/foo.sln"},
+		  "version": "vs2019",
+          // TODO: Might be cool to set the startup project per file opened:
+          // https://social.msdn.microsoft.com/Forums/vstudio/en-US/a3a23781-34ef-4d5f-8233-0adb0ac15d32/dte-set-startup-project?forum=vsx
+		  // "startup_project": "ProjectName"
+	  }, {
+		".*": {
+		  "solution": "./toplevel.sln"
+		}
+	  }
+	],
+	"vscode": [
+	  {
+	    ".*": {
+		  // If you use a workspace configured outside of your repo, you should
+		  // set this in `.useridel` instead of `.idel`.
+	      "workspace": "~/maybe_some_global.workspace"
+	    }
+	  }
+	]
+  }
+}
+
+// Other idea
+{
+  // Note that there will always be an option to go to the original link.
+  
+  "name_of_trigger": {
+	// A regex to match URLs that aren't links directly to the file.
+	//
+	// If url_regex is unspecified, the regex will be the default based on your repository hosting solution (GitHub, GitLab, Swarm, etc).
+    "url_regex": "(?:https?://)?cl/\d+",
+	// The command to run when url_regex is matched. This is a bad example, I'd expect users to swizzle the
+	// url in a python script before calling this function, so the URL can be changed to suit the new webpage.
+	"command": "linkWheel.exe --open-default-browser %1"
+	// A list of other configured triggers. If any of these other triggers show, do not show this trigger.
+	"hide_option_when": ["name_of_trigger_2"]
+  },
+  "default_editor": {
+    // This trigger does not specify a URL regex, so the default will be used.
+	//
+	// In this case, always show the user the option to open the default editor for the given local file.
+	
+	// Equivalent to the following, but allows the icon to be shown on the wheel.
+	// "command": "linkWheel.exe --open-default-editor %1"
+	"editor": {
+	  "type": "default"
+	}
+	
+	"icon": "./local/path/to/image_or_exe"
+  }
+  
+  "open_up_a_diff": {
+    // This trigger does not specify a URL regex, so the default will be used.
+	//
+	// In this case, always show the user the option to view a diff.
+	
+	"command": "./scripts/python/diff_file.py $(linkWheel.exe get-git-expression --url %url%)"
+  }
+  
+  "name_of_trigger_4": {
+    "editor": {
+	  "type": "vs2019",
+	  "solution": "./toplevel.sln"
+	}
+	"hide_option_when": ["open_vs_code"]
+  }
+  "open_vs_code": {
+    "extensions": [".pipeline", ".groovy"]
+	"editor": {
+	  "type": "vscode",
+	  "workspace": "./path/to/jenkins.workspace"
+	}
+  }
+}
+
+
+Registering these files automagically:
+ - Option 1: Search your harddrive:
+   - Cons:
+	 - Slow for Non-Windows, Non-Everything (the program) users
+	 - Would need some sort of file system monitor
+ - Option 2: Intercept default json editor. Register file paths to registry
+   - Cons:
+     - Moved source directories would be a pain to deal with
+	 - Requires the user to open the file at least once
+	   - We're already writing a plugin for all IDEs anyway, we can write a plugin
+	     to find the .idelconfig file and register it.
+		 - Same con: requires the user to open the IDE workspace/project at least once.
+ - Option 3: Source control plugin?
+   - Cons:
+     - The software stack is big enough as is:
+       - IDE, System Tray Icon, Browser Hijacking, .idelconfig file
+     - Does this work with Mercurial, Git, and Perforce? 
+	   - In Git, we can create a global hook: https://coderwall.com/p/jp7d5q/create-a-global-git-commit-hook
+	   - In Perforce, this doesn't seem possible.
+ - Option 4: File System Monitoring
+   - Cons:
+     - The software stack expands across enough variables as-is.
+	   - Supporting various UNIX and Windows file systems sounds awful.
+	 - You still need to catch up to the monitor (i.e, search)
+	 
+
+
+Other Ideas:
+ - Source Code monitor
+   - For Git, Use an NFS (Network File System) + Overlay Filesystem
+     attached to the main repository to make git commands to monitor
+	 which files have been deleted or added. Run across the entire
+	 history on the initial pass, then store the commit hashes of
+	 the branches and on each update go through the history all the
+	 way to the previous commit hash tracked for each branch.
+	 - Note that this covers the case where the branch was renamed
+	   or set to be elswewhere in the tree if we store a dictionary
+	   between commit hash and the total file list.
+	 - Links:
+	   - https://wiki.archlinux.org/title/Overlay_filesystem
+	   - https://linuxize.com/post/how-to-mount-an-nfs-share-in-linux/
+   - For Perforce, we can `p4 sync -k` and get the total diff on each
+     stream. For the initial pass, we need to parse all have files and
+	 deleted files as well.
+	 - Links:
+	   - https://stackoverflow.com/questions/6183209/how-to-determine-deleted-files-in-perforce
+	   
+	   
