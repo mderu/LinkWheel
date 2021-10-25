@@ -27,7 +27,7 @@ namespace LinkWheel
             var cursorPosition = Cursor.Position;
 
             string[] args = Environment.GetCommandLineArgs()[1..];
-            // Hack to deal with installing a non-single file exe (i.e., debug build) 
+
             var parser = new Parser(settings => settings.EnableDashDash = true);
             if (args.Length == 0)
             {
