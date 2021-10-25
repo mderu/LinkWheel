@@ -12,7 +12,6 @@ namespace LinkWheel
     {
         private NotifyIcon TrayIcon { get; set; }
         private HashSet<string> TrackedPaths { get; set; }
-        private static string TrackedPathsFile => Path.Combine(LinkWheelConfig.CacheDirectory, "paths.txt");
 
         private static FileSystemWatcher ConfigDirectoryWatcher { get; set; }
         private static List<FileSystemWatcher> RepoWatchers { get; set; } = new();
@@ -35,9 +34,9 @@ namespace LinkWheel
                 Visible = true
             };
             SetMenuStrip();
-            TrackedPaths = new HashSet<string>(File.ReadAllLines(TrackedPathsFile));
             RepoWatchers = new List<FileSystemWatcher>();
 
+            Directory.CreateDirectory(LinkWheelConfig.CacheDirectory);
             // Add the watcher for the configuration files.
             ConfigDirectoryWatcher = new(LinkWheelConfig.CacheDirectory)
             {
@@ -167,18 +166,6 @@ namespace LinkWheel
             }
 
             new RegisterRepo(){ Directory = path }.Execute();
-
-            if (!File.Exists(Path.Combine(path, ".idelconfig")) && !File.Exists(Path.Combine(path, ".user.idelconfig")))
-            {
-                return;
-            }
-
-            if (TrackedPaths.Contains(path))
-            {
-                return;
-            }
-
-            File.AppendAllText(TrackedPathsFile, path + Environment.NewLine);
         }
 
         public void DisableLinkWheel(object sender, EventArgs e)
