@@ -75,9 +75,13 @@ namespace LinkWheel
                 Registry.CurrentUser.CreateSubKey(LinkWheelConfig.Registry.ClassKey, true).SetValue("", "");
                 isElevatedProcess = true;
             }
-            catch (SecurityException)
+            catch (Exception e) when (e is SecurityException || e is UnauthorizedAccessException)
             {
                 string[] commandline = Environment.GetCommandLineArgs();
+                if (commandline[0].EndsWith(".dll"))
+                {
+                    commandline[0] = commandline[0][..^4] + ".exe";
+                }
                 ProcessStartInfo startInfo = new(commandline[0], string.Join(" ", commandline[1..]))
                 {
                     Verb = "runas",
@@ -139,7 +143,7 @@ namespace LinkWheel
                     Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true).SetValue($"prev{cmdlineRegistryPath}", prevCmdline);
                     // Set the current user's shell/open/command value. If the browser is installed at the machine level,
                     // it probably won't bother touching this key during updates/re-installs.
-                    Registry.SetValue(cmdlineRegistryUserPath, "", $"\"{executablePath}\" %1 {prevCmdline}");
+                    Registry.SetValue(cmdlineRegistryUserPath, "", $"\"{executablePath}\" serve --url %1 -- {prevCmdline}");
                 }
             }
         }
