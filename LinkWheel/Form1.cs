@@ -109,7 +109,7 @@ namespace LinkWheel
                 {
                     float angleDiff = MathUtils.ShortestAngleDifference(mouseAngle, startAngle + sweepAngle / 2);
                     color = Color.FromArgb(
-                        255 - (int)(192.0f * Math.Clamp(MathF.Abs(angleDiff) / (sweepAngle / 2.0f), 0, 1)),
+                        255 - (int)(192.0f * Math.Clamp(MathF.Abs(angleDiff) / 90.0f, 0, 1)),
                         64, 
                         64, 
                         64);
