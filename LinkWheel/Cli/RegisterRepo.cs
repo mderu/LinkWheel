@@ -22,15 +22,9 @@ namespace LinkWheel.Cli
         {
             foreach (var hostingSolution in RemoteRepoHosts.All)
             {
-                if (hostingSolution.TryGetRootUrl(Directory, out string remoteRepoUri))
+                if (hostingSolution.TryGetRootUrl(Directory, out RepoConfig newRepoConfig))
                 {
-                    RepoConfig repoConfig = new()
-                    {
-                        RemoteRootUrl = remoteRepoUri,
-                        Root = Directory,
-                        RawRemoteRepoHostType = hostingSolution.GetType().Name,
-                    };
-                    Register(repoConfig);
+                    Register(newRepoConfig);
                     return;
                 }
             }
@@ -61,7 +55,7 @@ namespace LinkWheel.Cli
                         currentRepoConfigs
                             // If the repo root is already there, remove that entry. This should make it easier for us to
                             // update RemoteRepoHosts in the future (e.g., splitting GitLab from GitHub).
-                            .Where(config => config.Root != newRepoConfig.Root)
+                            .Where(config => !FileUtils.ArePathsEqual(config.Root, newRepoConfig.Root))
                             .Append(newRepoConfig)));
                 sw.Flush();
             });

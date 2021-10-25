@@ -48,26 +48,34 @@ namespace LinkWheel.CodeHosts
             return true;
         }
 
-        public override bool TryGetRootUrl(string localRepoRoot, out string remoteRepoUri)
+        public override bool TryGetRootUrl(string localRepoRoot, out RepoConfig newRepoConfig)
         {
-            // For now, we assume the user didn't super configure their git repo to use something
-            // other than "origin". Definitely something we'll have to revisit, but it works for
-            // the majority of git users.
-            //
+            // TODO: The logic here will match pretty much any Git repo. We need to see if there's a way
+            // we can differentiate GitHub from other git hosting solutions.
+
             // TODO: asyncify stuff.
             if (!Task.Run(() => IsGitInstalled()).Result)
             {
-                remoteRepoUri = "";
+                newRepoConfig = null;
                 return false;
             }
+
+            // For now, we assume the user didn't super configure their git repo to use something
+            // other than "origin". Definitely something we'll have to revisit, but it works for
+            // the majority of git users.
             (bool isValid, string remoteOrigin) = Task.Run(() => GetRemoteOriginUrl(localRepoRoot)).Result;
             if (isValid)
             {
-                // Trims ".git"
-                remoteRepoUri = remoteOrigin[..^4];
+                newRepoConfig = new()
+                {
+                    // Trims ".git"
+                    RemoteRootUrl = remoteOrigin[..^4],
+                    Root = Task.Run(() => GetRepoRoot(localRepoRoot)).Result.root,
+                    RawRemoteRepoHostType = nameof(GitHub),
+                };
                 return true;
             }
-            remoteRepoUri = "";
+            newRepoConfig = null;
             return false;
         }
 
@@ -93,7 +101,7 @@ namespace LinkWheel.CodeHosts
         private static async Task<bool> IsGitInstalled()
         {
             var stdOutBuffer = new StringBuilder();
-            // I think which is more common on 
+            // I think `which` is more common on Unix/Linux.
             await CliWrap.Cli.Wrap(OperatingSystem.IsWindows() ? "where" : "which")
                 .WithArguments("git")
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
@@ -101,6 +109,20 @@ namespace LinkWheel.CodeHosts
                 // TODO: Remove this after making stuff async
                 .ConfigureAwait(false);
             return stdOutBuffer.ToString().Trim().Length != 0;
+        }
+
+        public static async Task<(bool success, string root)> GetRepoRoot(string localPath)
+        {
+            var stdOutBuffer = new StringBuilder();
+            var result = await CliWrap.Cli.Wrap("git")
+                .WithArguments("rev-parse --show-toplevel")
+                .WithWorkingDirectory(Path.GetDirectoryName(localPath))
+                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                .ExecuteAsync()
+                // TODO: Remove this after making stuff async
+                .ConfigureAwait(false);
+
+            return (success: result.ExitCode == 0, root: stdOutBuffer.ToString().Trim());
         }
     }
 }

@@ -12,8 +12,8 @@ namespace LinkWheel.CodeHosts
         /// Returns true if localRepo root can only be described by this type.
         /// </summary>
         /// <param name="localRepoRoot">The absolute path to the local repository.</param>
-        /// <param name="remoteRepoUri">The remote repo URI to associate this repo with.</param>
-        public abstract bool TryGetRootUrl(string localRepoRoot, out string remoteRepoUri);
+        /// <param name="newRepoConfig">A new repo config containing the root url and cleaned up repo root.</param>
+        public abstract bool TryGetRootUrl(string localRepoRoot, out RepoConfig newRepoConfig);
 
         /// <summary>
         /// Returns true if an absolute path to a local file matches the remoteUri given.
