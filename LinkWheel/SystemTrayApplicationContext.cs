@@ -141,7 +141,7 @@ namespace LinkWheel
         private void SetMenuStrip()
         {
             ContextMenuStrip menuStrip = new();
-            if (new WindowsInstaller().IsEnabled())
+            if (Enable.IsEnabled())
             {
                 menuStrip.Items.Add("Disable", null, DisableLinkWheel);
             }
@@ -170,13 +170,13 @@ namespace LinkWheel
 
         public void DisableLinkWheel(object sender, EventArgs e)
         {
-            new WindowsInstaller().Disable();
+            new Disable().Execute();
             SetMenuStrip();
         }
 
         public void EnableLinkWheel(object sender, EventArgs e)
         {
-            new WindowsInstaller().Enable();
+            new Enable().Execute();
             SetMenuStrip();
         }
 

@@ -12,20 +12,20 @@ using System.Threading.Tasks;
 
 namespace LinkWheel.Cli
 {
-    [Verb("open-in-default-browser")]
+    [Verb("register")]
     class RegisterRepo
     {
         [Option("directory", Required = true)]
         public string Directory { get; set; }
 
-        public void Execute()
+        public int Execute()
         {
             foreach (var hostingSolution in RemoteRepoHosts.All)
             {
                 if (hostingSolution.TryGetRootUrl(Directory, out RepoConfig newRepoConfig))
                 {
                     Register(newRepoConfig);
-                    return;
+                    return 0;
                 }
             }
             throw new Exception($"Unable to determine remote repo for {Directory}");

@@ -42,14 +42,26 @@ namespace LinkWheel
                 {
                     args = args[1..];
                 }
-                int result = parser.ParseArguments<OpenInDefaultBrowser, Install, Uninstall, Serve>(args)
+                int result = parser
+                    .ParseArguments<
+                            Disable, 
+                            Enable, 
+                            Install, 
+                            OpenInDefaultBrowser, 
+                            RegisterRepo,
+                            Serve, 
+                            Uninstall
+                        >(args)
                     .MapResult(
-                        (OpenInDefaultBrowser verb) => verb.Execute(),
+                        (Disable verb) => verb.Execute(),
+                        (Enable verb) => verb.Execute(),
                         (Install verb) => verb.Execute(),
-                        (Uninstall verb) => verb.Execute(),
+                        (OpenInDefaultBrowser verb) => verb.Execute(),
                         (Serve verb) => verb.Execute(cursorPosition),
+                        (RegisterRepo verb) => verb.Execute(),
+                        (Uninstall verb) => verb.Execute(),
                         errs => 1
-                );
+                    );
                 return result;
             }
         }

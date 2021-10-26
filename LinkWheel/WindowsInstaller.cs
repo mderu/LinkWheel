@@ -51,16 +51,6 @@ namespace LinkWheel
             return bool.Parse((string)Registry.ClassesRoot.OpenSubKey(nameof(LinkWheel)).GetValue(LinkWheelConfig.Registry.EnabledValue, "false"));
         }
 
-        public void Disable()
-        {
-            Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true).SetValue(LinkWheelConfig.Registry.EnabledValue, "false");
-        }
-
-        public void Enable()
-        {
-            Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true).SetValue(LinkWheelConfig.Registry.EnabledValue, "true");
-        }
-
         /// <summary>
         /// If this process is elevated, returns true. Otherwise, starts and waits for an elevated
         /// process to do the install for us. This allows us to seemlessly install LinkWheel the first
