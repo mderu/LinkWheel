@@ -52,7 +52,7 @@ namespace LinkWheel.Icons
             }
 
             // Attempt to download from common location.
-            Bitmap icon;
+            Bitmap icon = null;
             bool iconIsMissing = false;
             using (var client = new WebClient())
             {
@@ -70,19 +70,30 @@ namespace LinkWheel.Icons
                     {
                         if (link.Attributes["rel"].Value == "apple-touch-icon")
                         {
-                            icon = DownloadBitmap(client, new Uri(url, link.Attributes["href"].Value));
                             broken = true;
+                            icon = DownloadBitmap(client, new Uri(url, link.Attributes["href"].Value));
                             break;
                         }
                     }
                     if (!broken)
                     {
-                        icon = Resources.MissingIcon;
-                        iconIsMissing = true;
+                        // Be sad and grab the favicon.
+                        broken = false;
+                        foreach (var link in links)
+                        {
+                            if (link.Attributes["rel"].DeEntitizeValue.Contains("shortcut icon"))
+                            {
+                                broken = true;
+                                icon = DownloadBitmap(client, new Uri(url, link.Attributes["href"].DeEntitizeValue));
+                                break;
+                            }
+                        }
+                        if (!broken)
+                        {
+                            icon = Resources.MissingIcon;
+                            iconIsMissing = true;
+                        }
                     }
-                    // Impossible, but this line makes the compiler stops complaining.
-                    // If only C# had Python's `for ... else` syntax.
-                    else { icon = null; }
                 }
             }
             if (!iconIsMissing)
