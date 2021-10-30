@@ -99,7 +99,7 @@ namespace LinkWheel.Utils
 
         public static bool ArePathsEqual(string pathA, string pathB)
         {
-            return Path.GetFullPath(pathA) == Path.GetFullPath(pathB);
+            return string.Equals(Path.GetFullPath(pathA), Path.GetFullPath(pathB), StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
