@@ -24,5 +24,13 @@ namespace LinkWheel.CodeHosts
         /// <param name="repoConfig">The <see cref="RepoConfig"/> this URL is associated with.</param>
         /// <param name="localPath">The absolute path to the local file correlated with the remoteUri.</param>
         public abstract Task<(bool, string)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig);
+
+        /// <summary>
+        /// Returns the link to the remote URL for the given file.
+        /// </summary>
+        /// <param name="localFilePath">{filepath}#{lineNumber}:~:text={text}</param>
+        /// <param name="repoConfig"></param>
+        /// <returns></returns>
+        public abstract Task<Uri> GetRemoteLink(string localFilePath, RepoConfig repoConfig);
     }
 }

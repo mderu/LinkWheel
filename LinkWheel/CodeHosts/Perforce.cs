@@ -97,6 +97,22 @@ namespace LinkWheel.CodeHosts
             return (false, null);
         }
 
+        public override async Task<Uri> GetRemoteLink(string localFilePath, RepoConfig repoConfig)
+        {
+            string actualPath = Path.GetRelativePath(repoConfig.Root, localFilePath.Split('#')[0]);
+            string postFix = localFilePath.Contains('#') ? "#" + localFilePath.Split('#')[1] : "";
+
+            string streamDepotPath = (await GetStream(repoConfig)).Replace("//", "/");
+
+            return new Uri(
+                Path.Combine(
+                    repoConfig.RemoteRootUrl, 
+                    "files", 
+                    streamDepotPath.Replace("//", ""), 
+                    actualPath
+                ) + postFix);
+        }
+
         private static async Task<List<string>> GetP4Roots(string port, string username)
         {
             var stdOutBuffer = new StringBuilder();
@@ -140,6 +156,11 @@ namespace LinkWheel.CodeHosts
             return streamPath;
         }
 
+        /// <summary>
+        /// Returns the depot path for the given stream.
+        /// </summary>
+        /// <param name="repoConfig"></param>
+        /// <returns></returns>
         private static async Task<string> GetStream(RepoConfig repoConfig)
         {
             string port = repoConfig.RemoteRepoHostKeys["port"];

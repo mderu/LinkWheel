@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CliWrap;
 using LinkWheel.InternalConfig;
+using LinkWheel.Utils;
 
 namespace LinkWheel.CodeHosts
 {
@@ -74,6 +75,71 @@ namespace LinkWheel.CodeHosts
                 );
             }
             return (false, null);
+        }
+
+        public override async Task<Uri> GetRemoteLink(string localFilePath, RepoConfig repoConfig)
+        {
+            // TODO: Change first argument to an object that can specify more data
+            // (linked line, text, branch, etc).
+            string actualPath = Path.GetRelativePath(repoConfig.Root, localFilePath.Split('#')[0]);
+            string postFix = localFilePath.Contains('#') ? "#" + localFilePath.Split('#')[1] : "";
+
+            // Note that even if we get this wrong, GitHub will compensate.
+            string blobOrTree = "blob";
+            bool isDirectory = Directory.Exists(actualPath);
+            if (isDirectory)
+            {
+                blobOrTree = "tree";
+            }
+
+            string remoteBranch;
+            string localPathDirectory = isDirectory ? actualPath : Path.GetDirectoryName(actualPath);
+            if (TaskUtils.Try(await GetRemoteBranch(localPathDirectory), out remoteBranch))
+            {
+
+            }
+            else
+            {
+                remoteBranch = await GetCommitHash(localPathDirectory);
+            }
+
+            // Magic number explanation:
+            // The 5 skipped parts are:
+            //   1) empty string (paths are rooted)
+            //   2) username
+            //   3) repo name
+            //   4) blob or tree
+            //   5) commit hash or branch name
+            return new Uri(Path.Combine(
+                repoConfig.RemoteRootUrl,
+                blobOrTree,
+                remoteBranch,
+                actualPath) + postFix);
+        }
+
+        public static async Task<(bool, string)> GetRemoteBranch(string directory)
+        {
+            var stdOutBuffer = new StringBuilder();
+            var result = await CliWrap.Cli.Wrap("git")
+                .WithArguments("config rev-parse --abbrev-ref --symbolic-full-name \"@{u}\"")
+                .WithWorkingDirectory(directory)
+                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteAsync();
+
+            return (result.ExitCode == 0, stdOutBuffer.ToString().Trim().Split("/")[1]);
+        }
+
+        public static async Task<string> GetCommitHash(string directory)
+        {
+            var stdOutBuffer = new StringBuilder();
+            var result = await CliWrap.Cli.Wrap("git")
+                .WithArguments("config rev-parse --abbrev-ref --symbolic-full-name \"@{u}\"")
+                .WithWorkingDirectory(directory)
+                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                .ExecuteAsync();
+
+            return stdOutBuffer.ToString().Trim();
         }
 
         /// <summary>
