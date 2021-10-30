@@ -33,12 +33,16 @@ namespace LinkWheel.Cli
             if (results.Count == 1)
             {
                 Register(results[0]);
+                return 0;
             }
-            if (results.Count > 1)
+            else if (results.Count > 1)
             {
                 throw new Exception($"Multiple matches for {Directory}");
             }
-            throw new Exception($"Unable to determine remote repo for {Directory}");
+            else
+            {
+                throw new Exception($"Unable to determine remote repo for {Directory}");
+            }
         }
 
         public static void Register(RepoConfig newRepoConfig)

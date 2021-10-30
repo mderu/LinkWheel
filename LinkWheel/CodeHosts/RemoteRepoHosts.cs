@@ -42,7 +42,8 @@ namespace LinkWheel.CodeHosts
             var tasks = repoCandidates.Select(
                 async (candidate) =>
                 {
-                    if (TaskUtils.Try(await candidate.RemoteRepoHostType.TryGetLocalPath(url, candidate), out string resultingPath))
+                    if (candidate.RemoteRepoHostType != null 
+                        && TaskUtils.Try(await candidate.RemoteRepoHostType.TryGetLocalPath(url, candidate), out string resultingPath))
                     {
                         return resultingPath;
                     }
