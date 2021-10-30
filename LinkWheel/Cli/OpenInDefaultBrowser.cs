@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace LinkWheel.Cli
 {
@@ -13,7 +14,7 @@ namespace LinkWheel.Cli
         [Option("url", Required = true)]
         public string Url { get; set; }
 
-        public int Execute()
+        public Task<int> ExecuteAsync()
         {
             // Always ensure LinkWheel is installed before running a command. No point in making the user
             // run an install command before being able to use the executable.
@@ -55,7 +56,7 @@ namespace LinkWheel.Cli
                     UseShellExecute = true,
                 };
                 Process.Start(startInfo);
-                return 0;
+                return Task.FromResult(0);
             }
             else
             {

@@ -2,6 +2,7 @@ using LinkWheel.Cli;
 using System;
 using System.Windows.Forms;
 using CommandLine;
+using System.Threading.Tasks;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
@@ -42,9 +43,9 @@ namespace LinkWheel
                 {
                     args = args[1..];
                 }
-                int result = parser
+                int result = Task.Run(() => parser
                     .ParseArguments<
-                            Disable, 
+                            Disable,
                             Enable, 
                             Install, 
                             OpenInDefaultBrowser, 
@@ -53,15 +54,15 @@ namespace LinkWheel
                             Uninstall
                         >(args)
                     .MapResult(
-                        (Disable verb) => verb.Execute(),
-                        (Enable verb) => verb.Execute(),
-                        (Install verb) => verb.Execute(),
-                        (OpenInDefaultBrowser verb) => verb.Execute(),
-                        (Serve verb) => verb.Execute(cursorPosition),
-                        (RegisterRepo verb) => verb.Execute(),
-                        (Uninstall verb) => verb.Execute(),
-                        errs => 1
-                    );
+                        (Disable verb) => verb.ExecuteAsync(),
+                        (Enable verb) => verb.ExecuteAsync(),
+                        (Install verb) => verb.ExecuteAsync(),
+                        (OpenInDefaultBrowser verb) => verb.ExecuteAsync(),
+                        (RegisterRepo verb) => verb.ExecuteAsync(),
+                        (Serve verb) => verb.ExecuteAsync(cursorPosition),
+                        (Uninstall verb) => verb.ExecuteAsync(),
+                        errs => Task.FromResult(1)
+                    )).ConfigureAwait(false).GetAwaiter().GetResult();
                 return result;
             }
         }

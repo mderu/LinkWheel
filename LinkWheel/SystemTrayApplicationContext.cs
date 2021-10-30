@@ -5,6 +5,7 @@ using System.IO;
 using System.Collections.Generic;
 using LinkWheel.InternalConfig;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinkWheel
 {
@@ -154,7 +155,7 @@ namespace LinkWheel
             TrayIcon.ContextMenuStrip = menuStrip;
         }
 
-        public void RegisterNewConfig(object sender, EventArgs e)
+        public async void RegisterNewConfig(object sender, EventArgs e)
         {
             FolderBrowserDialog folderDialog = new();
             folderDialog.ShowDialog();
@@ -165,18 +166,18 @@ namespace LinkWheel
                 return;
             }
 
-            new RegisterRepo(){ Directory = path }.Execute();
+            await new RegisterRepo(){ Directory = path }.ExecuteAsync();
         }
 
         public void DisableLinkWheel(object sender, EventArgs e)
         {
-            new Disable().Execute();
+            new Disable().ExecuteAsync();
             SetMenuStrip();
         }
 
         public void EnableLinkWheel(object sender, EventArgs e)
         {
-            new Enable().Execute();
+            new Enable().ExecuteAsync();
             SetMenuStrip();
         }
 

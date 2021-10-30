@@ -1,19 +1,20 @@
 ﻿using CommandLine;
 using System;
+using System.Threading.Tasks;
 
 namespace LinkWheel.Cli
 {
     [Verb("uninstall")]
     class Uninstall
     {
-        public int Execute()
+        public Task<int> ExecuteAsync()
         {
             if (OperatingSystem.IsWindows())
             {
                 new WindowsInstaller().Uninstall();
-                return 0;
+                return Task.FromResult(0);
             }
-            return 1;
+            return Task.FromResult(1);
         }
     }
 }

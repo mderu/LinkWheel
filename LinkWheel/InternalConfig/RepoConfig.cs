@@ -72,5 +72,8 @@ namespace LinkWheel.InternalConfig
                 return remoteRepoHostType;
             }
         }
+
+        [JsonProperty("remote_repo_host_keys")]
+        public Dictionary<string, string> RemoteRepoHostKeys { get; set; }
     }
 }

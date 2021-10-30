@@ -1,19 +1,20 @@
 ﻿using CommandLine;
 using System;
+using System.Threading.Tasks;
 
 namespace LinkWheel.Cli
 {
     [Verb("install")]
     class Install
     {
-        public int Execute()
+        public Task<int> ExecuteAsync()
         {
             if (OperatingSystem.IsWindows())
             {
                 new WindowsInstaller().ForceInstall();
-                return 0;
+                return Task.FromResult(0);
             }
-            return 1;
+            return Task.FromResult(1);
         }
     }
 }

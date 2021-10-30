@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LinkWheel.Cli
@@ -22,7 +23,7 @@ namespace LinkWheel.Cli
         [Value(0)]
         public IEnumerable<string> BrowserArgs { get; set; }
 
-        public int Execute(Point cursorPosition)
+        public Task<int> ExecuteAsync(Point cursorPosition)
         {
             // Always ensure LinkWheel is installed before running a command. No point in making the user
             // run an install command before being able to use the executable.
@@ -31,7 +32,7 @@ namespace LinkWheel.Cli
             if (!IsEnabled())
             {
                 CliUtils.SimpleInvoke(BrowserArgs);
-                return 0;
+                return Task.FromResult(0);
             }
 
             var actions = GetActions();
@@ -45,7 +46,7 @@ namespace LinkWheel.Cli
                 Application.SetHighDpiMode(HighDpiMode.SystemAware);
                 Application.Run(new Form1(cursorPosition, actions));
             }
-            return 0;
+            return Task.FromResult(0);
         }
 
         private List<WheelElement> GetActions()

@@ -1,8 +1,10 @@
 ﻿using LinkWheel.InternalConfig;
+using LinkWheel.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace LinkWheel.CodeHosts
 {
@@ -37,13 +39,28 @@ namespace LinkWheel.CodeHosts
 
         public static bool TryGetLocalPathFromUrl(Uri url, List<RepoConfig> repoCandidates, out string localPath)
         {
-            foreach (RepoConfig candidate in repoCandidates)
-            {
-                if (candidate.RemoteRepoHostType.TryGetLocalPath(url, candidate, out localPath))
+            var tasks = repoCandidates.Select(
+                async (candidate) =>
                 {
-                    return true;
-                }
+                    if (TaskUtils.Try(await candidate.RemoteRepoHostType.TryGetLocalPath(url, candidate), out string resultingPath))
+                    {
+                        return resultingPath;
+                    }
+                    return null;
+                });
+            var results = Task.WhenAll(tasks).Result.Where(value => value != null).ToList();
+            if (results.Count == 1)
+            {
+                localPath = results[0];
+                return true;
             }
+            if (results.Count > 1)
+            {
+                //throw new Exception();
+                localPath = $"Multiple matches for {url}: {string.Join(", ", results[0])}";
+                return false;
+            }
+
             localPath = "";
             return false;
         }
