@@ -18,15 +18,25 @@ namespace LinkWheel.Cli
         [Option("directory", Required = true)]
         public string Directory { get; set; }
 
-        public int Execute()
+        public async Task<int> ExecuteAsync()
         {
-            foreach (var hostingSolution in RemoteRepoHosts.All)
-            {
-                if (hostingSolution.TryGetRootUrl(Directory, out RepoConfig newRepoConfig))
+            var tasks = RemoteRepoHosts.All.Select(
+                async (hostingSolution) =>
                 {
-                    Register(newRepoConfig);
-                    return 0;
-                }
+                    if (TaskUtils.Try(await hostingSolution.TryGetRootUrl(Directory), out RepoConfig newRepoConfig))
+                    {
+                        return newRepoConfig;
+                    }
+                    return null;
+                });
+            var results = (await Task.WhenAll(tasks)).Where(value => value != null).ToList();
+            if (results.Count == 1)
+            {
+                Register(results[0]);
+            }
+            if (results.Count > 1)
+            {
+                throw new Exception($"Multiple matches for {Directory}");
             }
             throw new Exception($"Unable to determine remote repo for {Directory}");
         }
@@ -49,7 +59,7 @@ namespace LinkWheel.Cli
                     // If the file got messed up somehow, ignore its contents.
                     currentRepoConfigs = new();
                 }
-                
+
                 filestream.SetLength(0);
                 sw.Write(JsonConvert.SerializeObject(
                         currentRepoConfigs
