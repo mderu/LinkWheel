@@ -81,19 +81,20 @@ namespace LinkWheel.CodeHosts
         {
             // TODO: Change first argument to an object that can specify more data
             // (linked line, text, branch, etc).
-            string actualPath = Path.GetRelativePath(repoConfig.Root, localFilePath.Split('#')[0]);
+            string fullPath = localFilePath.Split('#')[0];
+            string relativePath = Path.GetRelativePath(repoConfig.Root, fullPath);
             string postFix = localFilePath.Contains('#') ? "#" + localFilePath.Split('#')[1] : "";
 
             // Note that even if we get this wrong, GitHub will compensate.
             string blobOrTree = "blob";
-            bool isDirectory = Directory.Exists(actualPath);
+            bool isDirectory = Directory.Exists(relativePath);
             if (isDirectory)
             {
                 blobOrTree = "tree";
             }
 
             string remoteBranch;
-            string localPathDirectory = isDirectory ? actualPath : Path.GetDirectoryName(actualPath);
+            string localPathDirectory = isDirectory ? fullPath : Path.GetDirectoryName(fullPath);
             if (TaskUtils.Try(await GetRemoteBranch(localPathDirectory), out remoteBranch))
             {
 
@@ -114,20 +115,20 @@ namespace LinkWheel.CodeHosts
                 repoConfig.RemoteRootUrl,
                 blobOrTree,
                 remoteBranch,
-                actualPath) + postFix);
+                relativePath) + postFix);
         }
 
         public static async Task<(bool, string)> GetRemoteBranch(string directory)
         {
             var stdOutBuffer = new StringBuilder();
             var result = await CliWrap.Cli.Wrap("git")
-                .WithArguments("config rev-parse --abbrev-ref --symbolic-full-name \"@{u}\"")
+                .WithArguments("rev-parse --abbrev-ref --symbolic-full-name \"@{u}\"")
                 .WithWorkingDirectory(directory)
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
                 .WithValidation(CommandResultValidation.None)
                 .ExecuteAsync();
 
-            return (result.ExitCode == 0, stdOutBuffer.ToString().Trim().Split("/")[1]);
+            return (result.ExitCode == 0, result.ExitCode == 0 ? stdOutBuffer.ToString().Trim().Split("/")[1] : "");
         }
 
         public static async Task<string> GetCommitHash(string directory)

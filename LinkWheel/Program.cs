@@ -46,16 +46,18 @@ namespace LinkWheel
                 int result = Task.Run(() => parser
                     .ParseArguments<
                             Disable,
-                            Enable, 
-                            Install, 
-                            OpenInDefaultBrowser, 
+                            Enable,
+                            GetUrl,
+                            Install,
+                            OpenInDefaultBrowser,
                             RegisterRepo,
-                            Serve, 
+                            Serve,
                             Uninstall
                         >(args)
                     .MapResult(
                         (Disable verb) => verb.ExecuteAsync(),
                         (Enable verb) => verb.ExecuteAsync(),
+                        (GetUrl verb) => verb.ExecuteAsync(),
                         (Install verb) => verb.ExecuteAsync(),
                         (OpenInDefaultBrowser verb) => verb.ExecuteAsync(),
                         (RegisterRepo verb) => verb.ExecuteAsync(),
