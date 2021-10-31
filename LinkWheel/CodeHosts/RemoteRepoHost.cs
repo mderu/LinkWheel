@@ -17,12 +17,11 @@ namespace LinkWheel.CodeHosts
         public abstract Task<(bool, RepoConfig)> TryGetRootUrl(string localRepoRoot);
 
         /// <summary>
-        /// Returns (true, The absolute path to the local file correlated with the remoteUri)
-        /// if an absolute path to a local file matches the remoteUri given.
+        /// 
         /// </summary>
-        /// <param name="remoteUri">The URL to correlate to a local path.</param>
-        /// <param name="repoConfig">The <see cref="RepoConfig"/> this URL is associated with.</param>
-        /// <param name="localPath">The absolute path to the local file correlated with the remoteUri.</param>
+        /// <param name="localFilePath">The localFilePath requested as `{localFilePath}#{lineNum}:~:text={text}`</param>
+        /// <param name="repoConfig">The repo config for this file.</param>
+        /// <returns></returns>
         public abstract Task<(bool, string)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig);
 
         /// <summary>

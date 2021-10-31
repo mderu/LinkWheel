@@ -2,6 +2,7 @@
 using LinkWheel.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -64,6 +65,41 @@ namespace LinkWheel.CodeHosts
 
             localPath = "";
             return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="localFilePath">The localFilePath requested as `{localFilePath}#{lineNum}:~:text={text}`</param>
+        /// <param name="repoCandidates">The list of all repo configs to check against.</param>
+        /// <param name="remoteLink"></param>
+        /// <returns></returns>
+        public static async Task<(bool, Uri)> TryGetRemoteLinkFromPath(string localFilePath, List<RepoConfig> repoCandidates)
+        {
+            string actualPath = localFilePath.Split("#")[0];
+            DirectoryInfo curDir;
+            if (Directory.Exists(actualPath))
+            {
+                curDir = new DirectoryInfo(actualPath);
+            }
+            else
+            {
+                curDir = new FileInfo(actualPath).Directory;
+            }
+
+            while(curDir != null)
+            {
+                foreach (var candidate in repoCandidates)
+                {
+                    if (FileUtils.ArePathsEqual(candidate.Root, curDir.FullName))
+                    {
+                        return (true, await candidate.RemoteRepoHostType.GetRemoteLink(localFilePath, candidate));
+                    }
+                }
+                curDir = curDir.Parent;
+            }
+
+            return (false, null);
         }
     }
 }
