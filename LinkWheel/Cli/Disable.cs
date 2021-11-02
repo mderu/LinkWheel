@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace LinkWheel.Cli
 {
     [Verb("disable")]
-    class Disable
+    public class Disable
     {
         public Task<int> ExecuteAsync()
         {

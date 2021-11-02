@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace LinkWheel.Cli
 {
     [Verb("uninstall")]
-    class Uninstall
+    public class Uninstall
     {
         public Task<int> ExecuteAsync()
         {
