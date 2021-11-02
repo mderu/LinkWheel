@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace LinkWheel.Cli
 {
     [Verb("register")]
-    class RegisterRepo
+    public class RegisterRepo
     {
         [Option("directory", Required = true)]
         public string Directory { get; set; }

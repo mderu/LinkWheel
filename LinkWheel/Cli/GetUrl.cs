@@ -4,12 +4,13 @@ using LinkWheel.InternalConfig;
 using LinkWheel.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace LinkWheel.Cli
 {
     [Verb("get-url")]
-    class GetUrl
+    public class GetUrl
     {
         [Option("file", Required = true)]
         public string File { get; set; }
@@ -20,7 +21,7 @@ namespace LinkWheel.Cli
 
             if (TaskUtils.Try(await RemoteRepoHosts.TryGetRemoteLinkFromPath(File, repoConfigs), out Uri remoteLink))
             {
-                Console.WriteLine(remoteLink.ToString());
+                Trace.WriteLine(remoteLink.ToString());
                 return 0;
             }
             return 1;

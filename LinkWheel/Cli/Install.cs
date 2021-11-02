@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace LinkWheel.Cli
 {
     [Verb("install")]
-    class Install
+    public class Install
     {
         public Task<int> ExecuteAsync()
         {

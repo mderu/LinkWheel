@@ -8,13 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LinkWheel.Cli
 {
     [Verb("serve")]
-    class Serve
+    public class Serve
     {
         [Option("url", Required = true)]
         public string Url { get; set; }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace LinkWheel.Cli
 {
     [Verb("open-in-default-browser")]
-    class OpenInDefaultBrowser
+    public class OpenInDefaultBrowser
     {
         [Option("url", Required = true)]
         public string Url { get; set; }
