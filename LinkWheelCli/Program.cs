@@ -1,10 +1,9 @@
-using LinkWheel.Cli;
+﻿using LinkWheel.Cli;
 using System;
 using System.Windows.Forms;
 using CommandLine;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using LinkWheel.PInvoke;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
@@ -15,9 +14,8 @@ namespace LinkWheel
     static class Program
     {
         /// <summary>
-        ///  The main entry point for the application.
+        /// The main entry point for the application.
         /// </summary>
-        //[STAThread]
         public static int Main()
         {
             // Immediately capture the cursor position. This allows us to center the Link Wheel around
@@ -29,8 +27,6 @@ namespace LinkWheel
             // likely, and would still have the same behavior we are seeing now.
             var cursorPosition = Cursor.Position;
 
-            // Console.WriteLine isn't working and I haven't figured out why.
-            // Using Trace to output things instead.
             Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
             Trace.AutoFlush = true;
 
