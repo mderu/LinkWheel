@@ -44,10 +44,17 @@ namespace LinkWheel.Cli
             }
             else
             {
-                Application.SetHighDpiMode(HighDpiMode.SystemAware);
-                Application.Run(new Form1(cursorPosition, actions));
+                Thread t = new(new ThreadStart(() => StartForm(cursorPosition, actions)));
+                t.SetApartmentState(ApartmentState.STA);
+                t.Start();
             }
             return Task.FromResult(0);
+        }
+
+        private void StartForm(Point cursorPosition, List<WheelElement> actions)
+        {
+            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+            Application.Run(new Form1(cursorPosition, actions));
         }
 
         private List<WheelElement> GetActions()

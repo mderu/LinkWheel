@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security;
 
@@ -33,6 +34,7 @@ namespace LinkWheel
             {
                 InterceptBrowserShellCommands();
                 WriteRegistryClassKey();
+                UpdateSystemPath();
             }
         }
 
@@ -43,12 +45,44 @@ namespace LinkWheel
             {
                 RevertBrowserShellCommands();
                 RemoveRegistryClassKey();
+                RemoveSystemPath();
             }
         }
 
         public bool IsEnabled()
         {
             return bool.Parse((string)Registry.ClassesRoot.OpenSubKey(nameof(LinkWheel)).GetValue(LinkWheelConfig.Registry.EnabledValue, "false"));
+        }
+
+        /// <summary>
+        /// Adds the directory for the currently executing file to the system path.
+        /// </summary>
+        private static void UpdateSystemPath()
+        {
+            using var envKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment", true);
+            string oldPath = (string)envKey.GetValue("Path", "");
+            string dirName = new FileInfo(Environment.GetCommandLineArgs()[0]).DirectoryName;
+            HashSet<string> paths = new HashSet<string>(oldPath.Split(";"));
+            // Returns true if it is new. If it's new, then append to the end. Otherwsie, let it go.
+            // We do this so the HashSet doesn't re-order the path directories every time this runs.
+            if (paths.Add(dirName))
+            {
+                envKey.SetValue("Path", string.Join(';', oldPath, dirName));
+                PSendNotifyMessage.SendEnvironmentUpdated();
+            }
+        }
+
+        /// <summary>
+        /// Adds the directory for the currently executing file to the system path.
+        /// </summary>
+        private static void RemoveSystemPath()
+        {
+            
+            using var envKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment", true);
+            string oldPath = (string)envKey.GetValue("Path", "");
+            string dirName = new FileInfo(Environment.GetCommandLineArgs()[0]).DirectoryName;
+            envKey.SetValue("Path", oldPath.Replace($";{dirName}", ""));
+            PSendNotifyMessage.SendEnvironmentUpdated();
         }
 
         /// <summary>
