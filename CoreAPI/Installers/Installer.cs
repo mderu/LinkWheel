@@ -2,7 +2,7 @@
 
 namespace CoreAPI.Installers
 {
-    class Installer
+    public class Installer
     {
         public static void EnsureInstalled()
         {
