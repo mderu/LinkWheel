@@ -1,4 +1,5 @@
-﻿using CoreAPI.Config;
+﻿using CoreAPI.Cli;
+using CoreAPI.Config;
 using System;
 using System.Threading.Tasks;
 
@@ -26,9 +27,9 @@ namespace CoreAPI.RemoteHosts
         /// <summary>
         /// Returns the link to the remote URL for the given file.
         /// </summary>
-        /// <param name="localFilePath">{filepath}#{lineNumber}:~:text={text}</param>
+        /// <param name="request">The GetUrl request</param>
         /// <param name="repoConfig"></param>
         /// <returns></returns>
-        public abstract Task<Uri> GetRemoteLink(string localFilePath, RepoConfig repoConfig);
+        public abstract Task<Uri> GetRemoteLink(GetUrl request, RepoConfig repoConfig);
     }
 }

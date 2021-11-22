@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CliWrap;
+using CoreAPI.Cli;
 using CoreAPI.Config;
 using CoreAPI.Utils;
 
@@ -77,13 +78,12 @@ namespace CoreAPI.RemoteHosts
             return (false, null);
         }
 
-        public override async Task<Uri> GetRemoteLink(string localFilePath, RepoConfig repoConfig)
+        public override async Task<Uri> GetRemoteLink(GetUrl request, RepoConfig repoConfig)
         {
             // TODO: Change first argument to an object that can specify more data
             // (linked line, text, branch, etc).
-            string fullPath = localFilePath.Split('#')[0];
+            string fullPath = request.File;
             string relativePath = Path.GetRelativePath(repoConfig.Root, fullPath);
-            string postFix = localFilePath.Contains('#') ? "#" + localFilePath.Split('#')[1] : "";
 
             // Note that even if we get this wrong, GitHub will compensate.
             string blobOrTree = "blob";
@@ -104,18 +104,25 @@ namespace CoreAPI.RemoteHosts
                 remoteBranch = await GetCommitHash(localPathDirectory);
             }
 
-            // Magic number explanation:
-            // The 5 skipped parts are:
-            //   1) empty string (paths are rooted)
-            //   2) username
-            //   3) repo name
-            //   4) blob or tree
-            //   5) commit hash or branch name
-            return new Uri(Path.Combine(
+            Uri returnValue = new(Path.Combine(
                 repoConfig.RemoteRootUrl,
                 blobOrTree,
                 remoteBranch,
-                relativePath) + postFix);
+                relativePath));
+
+            if (request.StartLine is not null)
+            {
+                StringBuilder newUrl = new(returnValue.ToString());
+                newUrl.Append("#L");
+                newUrl.Append(request.StartLine.Value);
+                if (request.EndLine is not null)
+                {
+                    newUrl.Append("-L");
+                    newUrl.Append(request.EndLine.Value);
+                }
+                returnValue = new Uri(newUrl.ToString());
+            }
+            return returnValue;
         }
 
         public static async Task<(bool, string)> GetRemoteBranch(string directory)

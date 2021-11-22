@@ -1,4 +1,5 @@
 ﻿using CliWrap;
+using CoreAPI.Cli;
 using CoreAPI.Config;
 using CoreAPI.Utils;
 using System;
@@ -97,20 +98,28 @@ namespace CoreAPI.RemoteHosts
             return (false, null);
         }
 
-        public override async Task<Uri> GetRemoteLink(string localFilePath, RepoConfig repoConfig)
+        public override async Task<Uri> GetRemoteLink(GetUrl request, RepoConfig repoConfig)
         {
-            string actualPath = Path.GetRelativePath(repoConfig.Root, localFilePath.Split('#')[0]);
-            string postFix = localFilePath.Contains('#') ? "#" + localFilePath.Split('#')[1] : "";
+            string actualPath = Path.GetRelativePath(repoConfig.Root, request.File);
 
             string streamDepotPath = (await GetStream(repoConfig)).Replace("//", "/");
 
-            return new Uri(
+            Uri returnValue = new(
                 Path.Combine(
                     repoConfig.RemoteRootUrl, 
                     "files", 
                     streamDepotPath.Replace("//", ""), 
                     actualPath
-                ) + postFix);
+            ));
+
+            if (request.StartLine is not null)
+            {
+                StringBuilder newUrl = new(returnValue.ToString());
+                newUrl.Append("#");
+                newUrl.Append(request.StartLine.Value);
+                returnValue = new Uri(newUrl.ToString());
+            }
+            return returnValue;
         }
 
         private static async Task<List<string>> GetP4Roots(string port, string username)

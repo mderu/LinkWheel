@@ -1,4 +1,5 @@
-﻿using CoreAPI.Config;
+﻿using CoreAPI.Cli;
+using CoreAPI.Config;
 using CoreAPI.Utils;
 using System;
 using System.Collections.Generic;
@@ -74,9 +75,9 @@ namespace CoreAPI.RemoteHosts
         /// <param name="repoCandidates">The list of all repo configs to check against.</param>
         /// <param name="remoteLink"></param>
         /// <returns></returns>
-        public static async Task<(bool, Uri)> TryGetRemoteLinkFromPath(string localFilePath, List<RepoConfig> repoCandidates)
+        public static async Task<(bool, Uri)> TryGetRemoteLinkFromPath(GetUrl request, List<RepoConfig> repoCandidates)
         {
-            string actualPath = localFilePath.Split("#")[0];
+            string actualPath = request.File;
             DirectoryInfo curDir;
             if (Directory.Exists(actualPath))
             {
@@ -93,7 +94,7 @@ namespace CoreAPI.RemoteHosts
                 {
                     if (FileUtils.ArePathsEqual(candidate.Root, curDir.FullName))
                     {
-                        return (true, await candidate.RemoteRepoHostType.GetRemoteLink(localFilePath, candidate));
+                        return (true, await candidate.RemoteRepoHostType.GetRemoteLink(request, candidate));
                     }
                 }
                 curDir = curDir.Parent;

@@ -1,6 +1,5 @@
 ﻿using LinkWheel.Cli;
 using System;
-using System.Windows.Forms;
 using CommandLine;
 using System.Threading.Tasks;
 using System.Diagnostics;
