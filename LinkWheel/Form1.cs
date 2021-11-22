@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using CoreAPI.Config;
 using CoreAPI.Icons;
 using CoreAPI.Utils;
+using LinkWheel.Properties;
 
 namespace LinkWheel
 {
@@ -117,10 +118,12 @@ namespace LinkWheel
                 }
                 g.FillPath(new SolidBrush(color), gp);
 
+                Bitmap icon = wheelElements[i].Icon ?? Resources.MissingIcon;
+
                 if (wheelElements[i].IconSecondary is null)
                 {
                     g.DrawImage(
-                        wheelElements[i].Icon,
+                        icon,
                         (int)(wheelCenters[i].X - IconUtils.IconSize / 2.0f),
                         (int)(wheelCenters[i].Y - IconUtils.IconSize / 2.0f),
                         IconUtils.IconSize,
@@ -129,7 +132,7 @@ namespace LinkWheel
                 else
                 {
                     g.DrawImage(
-                        IconUtils.Compose(IconUtils.RoundCorners(wheelElements[i].Icon), wheelElements[i].IconSecondary),
+                        IconUtils.Compose(IconUtils.RoundCorners(icon), wheelElements[i].IconSecondary),
                         (int)(wheelCenters[i].X - IconUtils.IconSize / 2.0f),
                         (int)(wheelCenters[i].Y - IconUtils.IconSize / 2.0f),
                         IconUtils.IconSize,
