@@ -1,18 +1,16 @@
-﻿using LinkWheel.Cli;
-using System;
+﻿using System;
 using System.Windows.Forms;
 using System.IO;
 using System.Collections.Generic;
-using LinkWheel.InternalConfig;
 using System.Linq;
-using System.Threading.Tasks;
+using CoreAPI.Config;
+using CoreAPI.Cli;
 
 namespace LinkWheel
 {
     public class SystemTrayApplicationContext : ApplicationContext
     {
         private NotifyIcon TrayIcon { get; set; }
-        private HashSet<string> TrackedPaths { get; set; }
 
         private static FileSystemWatcher ConfigDirectoryWatcher { get; set; }
         private static List<FileSystemWatcher> RepoWatchers { get; set; } = new();

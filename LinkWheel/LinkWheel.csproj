@@ -46,4 +46,8 @@
     <Folder Include="Resources\Icons\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CoreAPI\CoreAPI.csproj" />
+  </ItemGroup>
+
 </Project>

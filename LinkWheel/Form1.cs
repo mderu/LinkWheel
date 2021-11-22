@@ -4,8 +4,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using LinkWheel.Icons;
-using LinkWheel.Utils;
+using CoreAPI.Config;
+using CoreAPI.Icons;
+using CoreAPI.Utils;
 
 namespace LinkWheel
 {
@@ -116,12 +117,24 @@ namespace LinkWheel
                 }
                 g.FillPath(new SolidBrush(color), gp);
 
-                g.DrawImage(
-                    wheelElements[i].Icon,
-                    (int)(wheelCenters[i].X - IconUtils.IconSize / 2.0f),
-                    (int)(wheelCenters[i].Y - IconUtils.IconSize / 2.0f),
-                    IconUtils.IconSize,
-                    IconUtils.IconSize);
+                if (wheelElements[i].IconSecondary is null)
+                {
+                    g.DrawImage(
+                        wheelElements[i].Icon,
+                        (int)(wheelCenters[i].X - IconUtils.IconSize / 2.0f),
+                        (int)(wheelCenters[i].Y - IconUtils.IconSize / 2.0f),
+                        IconUtils.IconSize,
+                        IconUtils.IconSize);
+                }
+                else
+                {
+                    g.DrawImage(
+                        IconUtils.Compose(IconUtils.RoundCorners(wheelElements[i].Icon), wheelElements[i].IconSecondary),
+                        (int)(wheelCenters[i].X - IconUtils.IconSize / 2.0f),
+                        (int)(wheelCenters[i].Y - IconUtils.IconSize / 2.0f),
+                        IconUtils.IconSize,
+                        IconUtils.IconSize);
+                }
             }
         }
 
