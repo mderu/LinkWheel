@@ -1,4 +1,3 @@
-using LinkWheel.Cli;
 using System;
 using System.Windows.Forms;
 using CommandLine;
@@ -6,6 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using CoreAPI.Cli;
 using CoreAPI.Config;
+using CoreAPI.Installers;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
@@ -29,6 +29,10 @@ namespace LinkWheel
             // recent click. Technically the user can click something else in that time too, but it's less
             // likely, and would still have the same behavior we are seeing now.
             var cursorPosition = Cursor.Position;
+
+            // Always ensure LinkWheel is installed before running a command. No point in making the user
+            // run an install command before being able to use the executable.
+            Installer.EnsureInstalled();
 
             string[] args = Environment.GetCommandLineArgs()[1..];
 
