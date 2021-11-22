@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using CoreAPI.Cli;
 using CoreAPI.Config;
 using CoreAPI.Installers;
+using CoreAPI.Utils;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
@@ -52,10 +53,21 @@ namespace LinkWheel
                         errs => Task.FromResult(new List<WheelElement>())
                     )).ConfigureAwait(false).GetAwaiter().GetResult();
 
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Application.Run(new Form1(cursorPosition, actions));
-
-            return actions.Count > 0 ? 0 : 1;
+            // Don't open the option wheel if there's only one option.
+            if (actions.Count == 0)
+            {
+                return 1;
+            }
+            else if (actions.Count == 1)
+            {
+                CliUtils.SimpleInvoke(actions[0].CommandAction);
+            }
+            else
+            {
+                Application.SetHighDpiMode(HighDpiMode.SystemAware);
+                Application.Run(new Form1(cursorPosition, actions));
+            }
+            return 0;
         }
     }
 }

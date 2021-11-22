@@ -33,7 +33,7 @@ namespace CoreAPI.Icons
             if (File.Exists(localCachePath))
             {
                 return new((Bitmap)Image.FromFile(localCachePath), localCachePath);
-            };
+            }
 
             // Attempt to download from common location.
             Bitmap icon = null;
