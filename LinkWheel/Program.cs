@@ -53,13 +53,13 @@ namespace LinkWheel
                         errs => Task.FromResult(new List<WheelElement>())
                     )).ConfigureAwait(false).GetAwaiter().GetResult();
 
-            // Don't open the option wheel if there's only one option.
             if (actions.Count == 0)
             {
                 return 1;
             }
             else if (actions.Count == 1)
             {
+                // Don't open the option wheel if there's only one option.
                 CliUtils.SimpleInvoke(actions[0].CommandAction);
             }
             else
