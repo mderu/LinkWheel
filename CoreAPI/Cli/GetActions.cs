@@ -38,34 +38,45 @@ namespace CoreAPI.Cli
             if (File.Exists(LinkWheelConfig.TrackedReposFile))
             {
                 List<RepoConfig> repoConfigs = RepoConfigFile.Read();
-
-                if (RemoteRepoHosts.TryGetLocalPathFromUrl(new Uri(Url), repoConfigs, out string path))
+                
+                if (OperatingSystem.IsWindows())
                 {
-                    // TODO: Read the .idelconfig file and populate these. Here's some okay defaults
-                    // in the meantime.
-
-                    IconResult iconPath = IconUtils.GetIconForFile(path);
-
-                    elements.Add(new WheelElement()
+                    if (RemoteRepoHosts.TryGetLocalPathFromUrl(new Uri(Url), repoConfigs, out string path))
                     {
-                        Name = "Open in Editor",
-                        Description = $"Opens {path} in your default editor.",
-                        CommandAction = new string[] { path },
-                        IconPath = iconPath.Path,
-                        IconLazy = new(() => iconPath.Icon),
-                    });
+                        // TODO: Read the .idelconfig file and populate these. Here's some okay defaults
+                        // in the meantime.
 
-                    string parentDirectory = Path.GetDirectoryName(path);
-                    IconResult dirIconPath = IconUtils.GetIconForFile(parentDirectory);
-                    elements.Add(new WheelElement()
-                    {
-                        Name = "Show in Explorer",
-                        Description = $"Opens {parentDirectory} in your file explorer.",
-                        CommandAction = new string[] { @"C:\Windows\explorer.exe", parentDirectory },
-                        IconPath = dirIconPath.Path,
-                        IconLazy = new(() => dirIconPath.Icon),
-                    });
+                        IconResult iconPath = IconUtils.GetIconForFile(path);
+
+                        elements.Add(new WheelElement()
+                        {
+                            Name = "Open in Editor",
+                            Description = $"Opens {path} in your default editor.",
+                            CommandAction = new string[] { path },
+                            IconPath = iconPath.Path,
+                            IconLazy = new(() => iconPath.Icon),
+                        });
+
+                        string parentDirectory = Path.GetDirectoryName(path);
+                        IconResult dirIconPath = IconUtils.GetIconForFile(@"C:\Windows\explorer.exe");
+                        elements.Add(new WheelElement()
+                        {
+                            Name = "Show in Explorer",
+                            Description = $"Opens {parentDirectory} in your file explorer.",
+                            // The "/select" argument requires backslashes. That comma is intentional. See
+                            //   https://stackoverflow.com/questions/13680415/how-to-open-explorer-with-a-specific-file-selected
+                            //   https://ss64.com/nt/explorer.html
+                            CommandAction = new string[] { @"C:\Windows\explorer.exe", $"/select,\"{path.Replace("/", "\\")}\"" },
+                            IconPath = dirIconPath.Path,
+                            IconLazy = new(() => dirIconPath.Icon),
+                        });
+                    }
                 }
+                else
+                {
+                    throw new NotImplementedException("Cannot get actions for non-Windows systems yet.");
+                }
+                
             }
 
             IconResult urlIcon = IconUtils.GetIconForUrl(Url);
