@@ -14,15 +14,15 @@ namespace CoreAPI.Cli
     [Verb("register")]
     public class RegisterRepo
     {
-        [Option("directory", Required = true)]
-        public string Directory { get; set; }
+        [Option("path", Required = true)]
+        public string Path { get; set; }
 
         public async Task<int> ExecuteAsync()
         {
             var tasks = RemoteRepoHosts.All.Select(
                 async (hostingSolution) =>
                 {
-                    if (TaskUtils.Try(await hostingSolution.TryGetRootUrl(Directory), out RepoConfig newRepoConfig))
+                    if (TaskUtils.Try(await hostingSolution.TryGetRepoConfig(Path), out RepoConfig newRepoConfig))
                     {
                         return newRepoConfig;
                     }
@@ -36,11 +36,11 @@ namespace CoreAPI.Cli
             }
             else if (results.Count > 1)
             {
-                throw new Exception($"Multiple matches for {Directory}");
+                throw new Exception($"Multiple matches for {Path}");
             }
             else
             {
-                throw new Exception($"Unable to determine remote repo for {Directory}");
+                throw new Exception($"Unable to determine remote repo for {Path}");
             }
         }
 

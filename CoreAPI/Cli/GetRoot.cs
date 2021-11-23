@@ -11,7 +11,7 @@ namespace CoreAPI.Cli
     [Verb("get-root")]
     public class GetRoot
     {
-        [Option("path")]
+        [Option("path", Required = true)]
         public string Path { get; set; }
 
         public async Task<int> ExecuteAsync()
@@ -30,7 +30,7 @@ namespace CoreAPI.Cli
             var tasks = RemoteRepoHosts.All.Select(
                 async (hostingSolution) =>
                 {
-                    if (TaskUtils.Try(await hostingSolution.TryGetRootUrl(Path), out RepoConfig newRepoConfig))
+                    if (TaskUtils.Try(await hostingSolution.TryGetRepoConfig(Path), out RepoConfig newRepoConfig))
                     {
                         return newRepoConfig;
                     }

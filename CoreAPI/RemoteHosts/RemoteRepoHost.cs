@@ -14,7 +14,7 @@ namespace CoreAPI.RemoteHosts
         /// if localRepo root can only be described by this type.
         /// </summary>
         /// <param name="localRepoRoot">The absolute path to the local repository.</param>
-        public abstract Task<(bool, RepoConfig)> TryGetRootUrl(string localRepoRoot);
+        public abstract Task<(bool, RepoConfig)> TryGetRepoConfig(string localRepoRoot);
 
         /// <summary>
         /// 

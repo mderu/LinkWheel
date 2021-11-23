@@ -49,7 +49,7 @@ namespace CoreAPI.RemoteHosts
             return (true, Path.Combine(repoConfig.Root, string.Join('/', requestedParts.Skip(partIndex))));
         }
 
-        public override async Task<(bool, RepoConfig)> TryGetRootUrl(string localRepoRoot)
+        public override async Task<(bool, RepoConfig)> TryGetRepoConfig(string localRepoRoot)
         {
             if (!await IsP4Installed())
             {
@@ -76,7 +76,7 @@ namespace CoreAPI.RemoteHosts
 
                 foreach(string client in clients)
                 {
-                    if (FileUtils.ArePathsEqual(client, localRepoRoot))
+                    if (FileUtils.IsWithinPath(client, localRepoRoot))
                     {
                         return (
                             true, 
