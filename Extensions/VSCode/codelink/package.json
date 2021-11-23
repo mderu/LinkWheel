@@ -17,12 +17,8 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "codelink.helloWorld",
-				"title": "Hello World"
-			},
-			{
 				"command": "codelink.linkLine",
-				"title": "Link Line Number"
+				"title": "Copy Link to Line Number"
 			}
 		],
 		"menus": {
