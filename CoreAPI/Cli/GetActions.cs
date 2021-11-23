@@ -76,7 +76,6 @@ namespace CoreAPI.Cli
                 {
                     throw new NotImplementedException("Cannot get actions for non-Windows systems yet.");
                 }
-                
             }
 
             IconResult browserIcon = IconUtils.DefaultBrowserIcon;
