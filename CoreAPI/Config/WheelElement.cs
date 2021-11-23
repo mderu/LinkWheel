@@ -22,6 +22,9 @@ namespace CoreAPI.Config
         [JsonProperty("iconPathSecondary")]
         public string IconPathSecondary;
 
+        /// <remarks>
+        /// Can be null (cases where the website is not loaded); the form protects against this.
+        /// </remarks>
         [JsonIgnore]
         public Bitmap Icon => IconLazy.Value;
         [JsonIgnore]

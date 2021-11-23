@@ -79,18 +79,51 @@ namespace CoreAPI.Cli
                 
             }
 
-            IconResult urlIcon = IconUtils.GetIconForUrl(Url);
             IconResult browserIcon = IconUtils.DefaultBrowserIcon;
-            elements.Add(new WheelElement()
+
+            if (elements.Count == 0)
             {
-                Name = "Open in Browser",
-                Description = $"Opens {Url} in your default browser.",
-                CommandAction = BrowserArgs,
-                IconPath = urlIcon.Path,
-                IconLazy = new(() => urlIcon.Icon),
-                IconPathSecondary = browserIcon.Path,
-                IconSecondaryLazy = new(() => browserIcon.Icon),
-            });
+                if (IconUtils.TryGetWebsiteIconPath(new Uri(Url), out string localCachePath))
+                {
+                    elements.Add(new WheelElement()
+                    {
+                        Name = "Open in Browser",
+                        Description = $"Opens {Url} in your default browser.",
+                        CommandAction = BrowserArgs,
+                        IconPath = localCachePath,
+                        IconLazy = new(() => new((Bitmap)Image.FromFile(localCachePath))),
+                        IconPathSecondary = browserIcon.Path,
+                        IconSecondaryLazy = new(() => browserIcon.Icon),
+                    });
+                }
+                else
+                {
+                    elements.Add(new WheelElement()
+                    {
+                        Name = "Open in Browser",
+                        Description = $"Opens {Url} in your default browser.",
+                        CommandAction = BrowserArgs,
+                        IconPath = "",
+                        IconLazy = new(() => null),
+                        IconPathSecondary = browserIcon.Path,
+                        IconSecondaryLazy = new(() => browserIcon.Icon),
+                    });
+                }
+            }
+            else
+            {
+                IconResult urlIcon = IconUtils.GetIconForUrl(Url);
+                elements.Add(new WheelElement()
+                {
+                    Name = "Open in Browser",
+                    Description = $"Opens {Url} in your default browser.",
+                    CommandAction = BrowserArgs,
+                    IconPath = urlIcon.Path,
+                    IconLazy = new(() => urlIcon.Icon),
+                    IconPathSecondary = browserIcon.Path,
+                    IconSecondaryLazy = new(() => browserIcon.Icon),
+                });
+            }
 
             return elements;
         }

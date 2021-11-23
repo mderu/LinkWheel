@@ -49,6 +49,22 @@ namespace CoreAPI.Icons
             }
         }
 
+        /// <summary>
+        /// Returns the path to a website's icon, if it exists.
+        /// </summary>
+        public static bool TryGetWebsiteIconPath(Uri url, out string localPath)
+        {
+            string host = url.Host;
+            string localCachePath = Path.Combine(LinkWheelConfig.IconCachePath, $"{host}.png");
+            if (File.Exists(localCachePath))
+            {
+                localPath = localCachePath;
+                return true;
+            }
+            localPath = null;
+            return false;
+        }
+
         public static IconResult GetIconForUrl(string url)
         {
             return AppleTouchIcons.GetFromUrl(new Uri(url));
