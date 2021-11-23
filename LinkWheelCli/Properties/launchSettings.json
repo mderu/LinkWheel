@@ -2,7 +2,8 @@
   "profiles": {
     "LinkWheelCli": {
       "commandName": "Project",
-      "commandLineArgs": "get-url --file C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\LinkWheel\\Program.cs"
+      "commandLineArgs": "get-url --file LinkWheel\\LinkWheel\\Program.cs",
+      "workingDirectory": "../../"
     },
     "Install": {
       "commandName": "Project",
@@ -14,19 +15,23 @@
     },
     "GetUrl": {
       "commandName": "Project",
-      "commandLineArgs": "get-url --file C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\LinkWheel\\Program.cs --start-line 5 --end-line 6"
+      "commandLineArgs": "get-url --file LinkWheel\\LinkWheel\\Program.cs --start-line 5 --end-line 6",
+      "workingDirectory": "../../"
     },
     "IsRegistered": {
       "commandName": "Project",
-      "commandLineArgs": "is-registered --path C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs"
+      "commandLineArgs": "is-registered --path LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs",
+      "workingDirectory": "../../"
     },
     "GetRoot": {
       "commandName": "Project",
-      "commandLineArgs": "get-root --path C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs"
+      "commandLineArgs": "get-root --path LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs",
+      "workingDirectory": "../../"
     },
     "RegisterRepo": {
       "commandName": "Project",
-      "commandLineArgs": "register --path C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs"
+      "commandLineArgs": "register --path LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs",
+      "workingDirectory": "../../"
     }
   }
 }
