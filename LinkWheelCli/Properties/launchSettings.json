@@ -1,0 +1,32 @@
+{
+  "profiles": {
+    "LinkWheelCli": {
+      "commandName": "Project",
+      "commandLineArgs": "get-url --file C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\LinkWheel\\Program.cs"
+    },
+    "Install": {
+      "commandName": "Project",
+      "commandLineArgs": "install"
+    },
+    "GetActions": {
+      "commandName": "Project",
+      "commandLineArgs": "get-actions --url https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs"
+    },
+    "GetUrl": {
+      "commandName": "Project",
+      "commandLineArgs": "get-url --file C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\LinkWheel\\Program.cs --start-line 5 --end-line 6"
+    },
+    "IsRegistered": {
+      "commandName": "Project",
+      "commandLineArgs": "is-registered --path C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs"
+    },
+    "GetRoot": {
+      "commandName": "Project",
+      "commandLineArgs": "get-root --path C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs"
+    },
+    "RegisterRepo": {
+      "commandName": "Project",
+      "commandLineArgs": "register --path C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs"
+    }
+  }
+}
