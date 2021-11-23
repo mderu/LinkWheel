@@ -2,8 +2,8 @@
   "profiles": {
     "LinkWheel": {
       "commandName": "Project",
-      "commandLineArgs": "serve --url https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs",
-      "remoteDebugEnabled": true,
+      "commandLineArgs": "serve --url https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs#15 -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs#15",
+      "remoteDebugEnabled": false,
       "remoteDebugMachine": "127.0.0.1"
     },
     "System Tray Application (Win)": {
@@ -12,6 +12,27 @@
     "Force Install": {
       "commandName": "Project",
       "commandLineArgs": "install"
+    },
+    "GetUrl": {
+      "commandName": "Project",
+      "commandLineArgs": "get-url --file C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\LinkWheel\\CodeHosts\\RemoteRepoHosts.cs"
+    },
+    "Test": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\LinkWheel\\bin\\Publish\\LinkWheel.exe",
+      "commandLineArgs": "get-url --file C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\LinkWheel\\CodeHosts\\RemoteRepoHosts.cs"
+    },
+    "Non Intercept": {
+      "commandName": "Project",
+      "commandLineArgs": "serve --url https://www.google.com -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument https://www.google.com"
+    },
+    "Dead URL": {
+      "commandName": "Project",
+      "commandLineArgs": "serve --url http://docs.notepad-plus-plus.org/index.php/Plugin_Central -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument http://docs.notepad-plus-plus.org/index.php/Plugin_Central"
+    },
+    "Valid URL No file": {
+      "commandName": "Project",
+      "commandLineArgs": "serve --url https://github.com/ -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument https://github.com/"
     }
   }
 }

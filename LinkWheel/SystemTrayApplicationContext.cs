@@ -164,7 +164,7 @@ namespace LinkWheel
                 return;
             }
 
-            await new RegisterRepo(){ Directory = path }.ExecuteAsync();
+            await new RegisterRepo(){ Path = path }.ExecuteAsync();
         }
 
         public void DisableLinkWheel(object sender, EventArgs e)
