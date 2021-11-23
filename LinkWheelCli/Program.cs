@@ -28,8 +28,10 @@ namespace LinkWheel
                 .ParseArguments<
                         Disable,
                         Enable,
+                        GetRoot,
                         GetUrl,
                         Install,
+                        IsRegistered,
                         OpenInDefaultBrowser,
                         RegisterRepo,
                         GetActions,
@@ -38,8 +40,10 @@ namespace LinkWheel
                 .MapResult(
                     (Disable verb) => verb.ExecuteAsync(),
                     (Enable verb) => verb.ExecuteAsync(),
+                    (GetRoot verb) => verb.ExecuteAsync(),
                     (GetUrl verb) => verb.ExecuteAsync(),
                     (Install verb) => verb.ExecuteAsync(),
+                    (IsRegistered verb) => verb.ExecuteAsync(),
                     (OpenInDefaultBrowser verb) => verb.ExecuteAsync(),
                     (RegisterRepo verb) => verb.ExecuteAsync(),
                     (GetActions verb) => verb.ExecuteAsync(),

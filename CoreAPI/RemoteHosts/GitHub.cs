@@ -153,14 +153,25 @@ namespace CoreAPI.RemoteHosts
         /// <summary>
         /// Returns the configured origin remote URL.
         /// </summary>
-        /// <param name="workingDirectory"></param>
+        /// <param name="path"></param>
         /// <returns></returns>
-        public static async Task<(bool, string)> GetRemoteOriginUrl(string workingDirectory)
+        public static async Task<(bool, string)> GetRemoteOriginUrl(string path)
         {
+            if (!Directory.Exists(path))
+            {
+                if (File.Exists(path))
+                {
+                    path = new FileInfo(path).Directory.FullName;
+                }
+                else
+                {
+                    return new(false, $"No such file or directory: {path}");
+                }
+            }
             var stdOutBuffer = new StringBuilder();
             var result = await CliWrap.Cli.Wrap("git")
                 .WithArguments("config --get remote.origin.url")
-                .WithWorkingDirectory(workingDirectory)
+                .WithWorkingDirectory(path)
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
                 .WithValidation(CommandResultValidation.None)
                 .ExecuteAsync();
