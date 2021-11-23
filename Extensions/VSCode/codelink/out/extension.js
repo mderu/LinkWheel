@@ -16,12 +16,19 @@ function activate(context) {
         // Display a message box to the user
         let currentLine = vscode.window.activeTextEditor?.selection.active.line;
         if (currentLine != null && vscode.window.activeTextEditor != null) {
-            cp.exec(`linkWheelCli get-url --file ${vscode.window.activeTextEditor?.document.fileName} --start-line ${currentLine}`, (err, stdout, stderr) => {
+            cp.exec(`linkWheelCli register --path ${vscode.window.activeTextEditor?.document.fileName}`, (err, stdout, stderr) => {
                 if (err) {
                     vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`);
                 }
                 else {
-                    vscode.env.clipboard.writeText(stdout.trim());
+                    cp.exec(`linkWheelCli get-url --file ${vscode.window.activeTextEditor?.document.fileName} --start-line ${currentLine}`, (err, stdout, stderr) => {
+                        if (err) {
+                            vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`);
+                        }
+                        else {
+                            vscode.env.clipboard.writeText(stdout.trim());
+                        }
+                    });
                 }
             });
         }

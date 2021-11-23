@@ -16,15 +16,23 @@ export function activate(context: vscode.ExtensionContext) {
 		let currentLine = vscode.window.activeTextEditor?.selection.active.line;
 
 		if (currentLine != null && vscode.window.activeTextEditor != null) {
-			cp.exec(`linkWheelCli get-url --file ${vscode.window.activeTextEditor?.document.fileName} --start-line ${currentLine}`,
-				(err: any, stdout: string, stderr: string) => {
-					if (err) {
-						vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`)
-					}
-					else {
-						vscode.env.clipboard.writeText(stdout.trim())
-					}
-				});
+			cp.exec(`linkWheelCli register --path ${vscode.window.activeTextEditor?.document.fileName}`,
+			(err: any, stdout: string, stderr: string) => {
+				if (err) {
+					vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`)
+				}
+				else {
+					cp.exec(`linkWheelCli get-url --file ${vscode.window.activeTextEditor?.document.fileName} --start-line ${currentLine}`,
+						(err: any, stdout: string, stderr: string) => {
+							if (err) {
+								vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`)
+							}
+							else {
+								vscode.env.clipboard.writeText(stdout.trim())
+							}
+						});
+				}
+			});
 		}
 	});
 
