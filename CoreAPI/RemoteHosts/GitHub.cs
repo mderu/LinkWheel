@@ -47,7 +47,7 @@ namespace CoreAPI.RemoteHosts
                     string.Join("/", requestedParts.Skip(5)))));
         }
 
-        public override async Task<(bool, RepoConfig)> TryGetRootUrl(string localRepoRoot)
+        public override async Task<(bool, RepoConfig)> TryGetRepoConfig(string localRepoRoot)
         {
             // TODO: The logic here will match pretty much any Git repo. We need to see if there's a way
             // we can differentiate GitHub from other git hosting solutions.

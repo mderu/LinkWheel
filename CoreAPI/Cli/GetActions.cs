@@ -1,14 +1,11 @@
 ﻿using CommandLine;
-using CoreAPI.Utils;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using CoreAPI.Config;
-using CoreAPI.Installers;
 using CoreAPI.RemoteHosts;
 using CoreAPI.Icons;
 using Newtonsoft.Json;

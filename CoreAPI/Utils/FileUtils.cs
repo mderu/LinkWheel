@@ -99,5 +99,23 @@ namespace CoreAPI.Utils
         {
             return string.Equals(Path.GetFullPath(pathA), Path.GetFullPath(pathB), StringComparison.InvariantCultureIgnoreCase);
         }
+
+        public static bool IsWithinPath(string parentPath, string potentialChildPath)
+        {
+            return IsWithinPath(new DirectoryInfo(parentPath), new DirectoryInfo(potentialChildPath));
+        }
+
+        private static bool IsWithinPath(DirectoryInfo parentDir, DirectoryInfo potentialChildPath)
+        {
+            if (ArePathsEqual(parentDir.FullName, potentialChildPath.FullName))
+            {
+                return true;
+            }
+            if (potentialChildPath.Parent is null)
+            {
+                return false;
+            }
+            return IsWithinPath(parentDir, potentialChildPath.Parent);
+        }
     }
 }
