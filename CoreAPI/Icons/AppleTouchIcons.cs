@@ -26,10 +26,7 @@ namespace CoreAPI.Icons
 
         public static IconResult GetFromUrl(Uri url, Bitmap defaultIcon = null)
         {
-            string host = url.Host;
-
-            string localCachePath = Path.Combine(LinkWheelConfig.IconCachePath, $"{host}.png");
-            if (File.Exists(localCachePath))
+            if (IconUtils.TryGetWebsiteIconPath(url, out string localCachePath))
             {
                 return new((Bitmap)Image.FromFile(localCachePath), localCachePath);
             }
