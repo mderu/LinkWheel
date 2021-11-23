@@ -45,37 +45,45 @@ namespace CoreAPI.Icons
                 }
                 catch (WebException)
                 {
-                    HtmlWeb web = new();
-                    HtmlDocument htmlDoc = web.Load(url);
-                    var links = htmlDoc.DocumentNode.SelectNodes("/html/head/link");
-                    bool broken = false;
-                    foreach (var link in links)
+                    try
                     {
-                        if (link.Attributes["rel"].Value == "apple-touch-icon")
-                        {
-                            broken = true;
-                            icon = DownloadBitmap(client, new Uri(url, link.Attributes["href"].Value));
-                            break;
-                        }
-                    }
-                    if (!broken)
-                    {
-                        // Be sad and grab the favicon.
-                        broken = false;
+                        HtmlWeb web = new();
+                        HtmlDocument htmlDoc = web.Load(url);
+                        var links = htmlDoc.DocumentNode.SelectNodes("/html/head/link");
+                        bool broken = false;
                         foreach (var link in links)
                         {
-                            if (link.Attributes["rel"].DeEntitizeValue.Contains("shortcut icon"))
+                            if (link.Attributes["rel"].Value == "apple-touch-icon")
                             {
                                 broken = true;
-                                icon = DownloadBitmap(client, new Uri(url, link.Attributes["href"].DeEntitizeValue));
+                                icon = DownloadBitmap(client, new Uri(url, link.Attributes["href"].Value));
                                 break;
                             }
                         }
                         if (!broken)
                         {
-                            icon = defaultIcon;
-                            iconIsMissing = true;
+                            // Be sad and grab the favicon.
+                            broken = false;
+                            foreach (var link in links)
+                            {
+                                if (link.Attributes["rel"].DeEntitizeValue.Contains("shortcut icon"))
+                                {
+                                    broken = true;
+                                    icon = DownloadBitmap(client, new Uri(url, link.Attributes["href"].DeEntitizeValue));
+                                    break;
+                                }
+                            }
+                            if (!broken)
+                            {
+                                icon = defaultIcon;
+                                iconIsMissing = true;
+                            }
                         }
+                    }
+                    catch (WebException)
+                    {
+                        // If this doesn't work, then the URL requested isn't returning anything.
+                        return new(defaultIcon, "");
                     }
                 }
             }
@@ -83,8 +91,12 @@ namespace CoreAPI.Icons
             {
                 Directory.CreateDirectory(LinkWheelConfig.IconCachePath);
                 icon.Save(localCachePath);
+                return new(icon, localCachePath);
             }
-            return new(icon, localCachePath);
+            else
+            {
+                return new(defaultIcon, "");
+            }
         }
     }
 }
