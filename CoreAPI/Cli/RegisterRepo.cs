@@ -11,11 +11,16 @@ using System.Threading.Tasks;
 
 namespace CoreAPI.Cli
 {
-    [Verb("register")]
+    [Verb("register", HelpText = HelpText)]
     public class RegisterRepo
     {
         [Option("path", Required = true)]
         public string Path { get; set; }
+
+        public const string HelpText = "Registers the repo the given path is a part of, if the path is valid. " +
+            "Upon failure to register the repo, the return code is 1. " +
+            "On success, the return code is 0 and the new RepoConfig is returned. " +
+            "If already registered, this operation is effectively a no-op, but returns the same as success.";
 
         public async Task<int> ExecuteAsync()
         {
@@ -32,6 +37,7 @@ namespace CoreAPI.Cli
             if (results.Count == 1)
             {
                 Register(results[0]);
+                Console.WriteLine(JsonConvert.SerializeObject(results[0]));
                 return 0;
             }
             else if (results.Count > 1)

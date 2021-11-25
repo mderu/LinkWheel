@@ -96,6 +96,7 @@ namespace LinkWheelVSIX
             DTE dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
             TextSelection textSelection = (TextSelection)dte.ActiveDocument.Selection;
 
+            // TODO: Implement caching (don't always register the path)
             var stdOutBuffer = new StringBuilder();
             var stdErrBuffer = new StringBuilder();
             var result = Cli.Wrap("linkWheelCli")
