@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using CoreAPI.Config;
 using CoreAPI.Installers;
+using CoreAPI.OutputFormat;
 using CoreAPI.Utils;
 using Microsoft.Win32;
 using System;
@@ -18,7 +19,7 @@ namespace CoreAPI.Cli
         [Option("url", Required = true)]
         public string Url { get; set; } = "";
 
-        public async Task<int> ExecuteAsync()
+        public async Task<OutputData> ExecuteAsync()
         {
             // Always ensure LinkWheel is installed before running a command. No point in making the user
             // run an install command before being able to use the executable.
@@ -40,8 +41,7 @@ namespace CoreAPI.Cli
                     LinkWheelConfig.Registry.DefaultBrowserProgId);
                 if (classKey is null)
                 {
-                    Console.Error.WriteLine($"Unable to open url {Url}: the registry key {registryKey} does not exist.");
-                    return 1;
+                    return new(1, new(), $"Unable to open url {Url}: the registry key {registryKey} does not exist.");
                 }
 
                 //TO(MAYBE)DO: Could read from HKEY_CLASSES_ROOT\LinkWheel\prev{key}, but that key includes the full path
@@ -68,11 +68,11 @@ namespace CoreAPI.Cli
                     UseShellExecute = true,
                 };
                 Process.Start(startInfo);
-                return 0;
+                return new(0, new(), "");
             }
             else
             {
-                throw new NotImplementedException("Have not figured out the best way to do this is Linux/OSX yet.");
+                return new(1, new(), "Have not figured out the best way to do this is Linux/OSX yet.");
             }
         }
     }

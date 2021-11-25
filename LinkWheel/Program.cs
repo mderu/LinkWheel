@@ -3,10 +3,10 @@ using System.Windows.Forms;
 using CommandLine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using CoreAPI.Cli;
 using CoreAPI.Config;
 using CoreAPI.Installers;
 using CoreAPI.Utils;
+using LinkWheel.Cli;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).

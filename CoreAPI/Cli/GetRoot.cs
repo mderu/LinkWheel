@@ -1,8 +1,8 @@
 ﻿using CommandLine;
 using CoreAPI.Config;
+using CoreAPI.OutputFormat;
 using CoreAPI.RemoteHosts;
 using CoreAPI.Utils;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,18 +15,7 @@ namespace CoreAPI.Cli
         [Option("path", Required = true)]
         public string Path { get; set; } = "";
 
-        public async Task<int> ExecuteAsync()
-        {
-            if (TaskUtils.Try(await TryGet(), out string result))
-            {
-                Console.WriteLine(result);
-                return 0;
-            }
-            Console.Error.WriteLine(result);
-            return 1;
-        }
-
-        public async Task<(bool, string)> TryGet()
+        public async Task<OutputData> ExecuteAsync()
         {
             var tasks = RemoteRepoHosts.All.Select(
                 async (hostingSolution) =>
@@ -39,17 +28,19 @@ namespace CoreAPI.Cli
                     return null;
                 });
             var results = (await Task.WhenAll(tasks)).RemoveNulls().ToList();
+
+            Dictionary<string, object> outputObjects = new() { ["results"] = results, ["givenPath"] = Path };
             if (results.Count == 1)
             {
-                return new(true, results[0].Root);
+                return new OutputData(0, outputObjects, "(=results[0].root=)");
             }
             else if (results.Count > 1)
             {
-                return (false, $"Multiple matches for {Path}");
+                return new OutputData(1, outputObjects, $"Multiple matches for (=givenPath=)");
             }
             else
             {
-                return (false, $"Unable to determine remote repo for {Path}");
+                return new OutputData(1, outputObjects, $"Unable to determine remote repo for (=givenPath=)");
             }
         }
     }

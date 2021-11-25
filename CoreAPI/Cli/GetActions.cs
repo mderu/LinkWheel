@@ -9,6 +9,7 @@ using CoreAPI.Config;
 using CoreAPI.RemoteHosts;
 using CoreAPI.Icons;
 using Newtonsoft.Json;
+using CoreAPI.OutputFormat;
 
 namespace CoreAPI.Cli
 {
@@ -21,11 +22,11 @@ namespace CoreAPI.Cli
         [Value(0)]
         public IEnumerable<string> BrowserArgs { get; set; } = new List<string>();
 
-        public async Task<int> ExecuteAsync()
+        public async Task<OutputData> ExecuteAsync()
         {
             List<WheelElement> elements = await Get();
-            Console.WriteLine(JsonConvert.SerializeObject(elements));
-            return 0;
+
+            return new OutputData(0, new() { ["actions"] = elements }, "(=actions=)");
         }
 
         public async Task<List<WheelElement>> Get()

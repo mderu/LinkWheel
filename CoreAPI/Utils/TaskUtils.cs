@@ -12,6 +12,12 @@ namespace CoreAPI.Utils
             outVar = awaitedResult.Item2;
             return awaitedResult.Item1;
         }
+        public static bool Try<T1, T2>(ValueTuple<bool, T1, T2> awaitedResult, out T1 outVar1, out T2 outVar2)
+        {
+            outVar1 = awaitedResult.Item2;
+            outVar2 = awaitedResult.Item3;
+            return awaitedResult.Item1;
+        }
 
         public static bool TryDeadlock<T>(Task<ValueTuple<bool, T>> awaitedResult, out T outVar)
         {

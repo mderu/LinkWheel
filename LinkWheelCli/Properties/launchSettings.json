@@ -25,13 +25,17 @@
     },
     "GetRoot": {
       "commandName": "Project",
-      "commandLineArgs": "get-root --path LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs",
+      "commandLineArgs": "--format (=$=) get-root --path LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs",
       "workingDirectory": "../../"
     },
     "RegisterRepo": {
       "commandName": "Project",
       "commandLineArgs": "register --path LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs",
       "workingDirectory": "../../"
+    },
+    "TestOutput": {
+      "commandName": "Project",
+      "commandLineArgs": "--format \"Type=(=results[0].remote_repo_host_type=), Link=(=results[0].remote_root_uri=)\" get-root --path C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\CoreAPI\\Cli\\HandleOutput.cs"
     }
   }
 }

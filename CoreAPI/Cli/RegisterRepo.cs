@@ -1,9 +1,8 @@
 ﻿using CommandLine;
 using CoreAPI.Config;
-using CoreAPI.RemoteHosts;
+using CoreAPI.OutputFormat;
 using CoreAPI.Utils;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,33 +21,15 @@ namespace CoreAPI.Cli
             "On success, the return code is 0 and the new RepoConfig is returned. " +
             "If already registered, this operation is effectively a no-op, but returns the same as success.";
 
-        public async Task<int> ExecuteAsync()
+        public async Task<OutputData> ExecuteAsync()
         {
-            var tasks = RemoteRepoHosts.All.Select(
-                async (hostingSolution) =>
-                {
-                    if (TaskUtils.Try(await hostingSolution.TryGetRepoConfig(Path), out RepoConfig? newRepoConfig))
-                    {
-                        // Forgiveness: not null if the Try function return true.
-                        return newRepoConfig!;
-                    }
-                    return null;
-                });
-            var results = (await Task.WhenAll(tasks)).RemoveNulls().ToList();
+            OutputData result = await new GetRoot() { Path = Path }.ExecuteAsync();
+            var results = (List<RepoConfig>)result.Objects["results"];
             if (results.Count == 1)
             {
                 Register(results[0]);
-                Console.WriteLine(JsonConvert.SerializeObject(results[0]));
-                return 0;
             }
-            else if (results.Count > 1)
-            {
-                throw new Exception($"Multiple matches for {Path}");
-            }
-            else
-            {
-                throw new Exception($"Unable to determine remote repo for {Path}");
-            }
+            return result;
         }
 
         public static void Register(RepoConfig newRepoConfig)

@@ -22,7 +22,7 @@ namespace CoreAPI.UserConfig
             /// this trigger is disabled. Note that triggers listed here that are disabled by their own
             /// hide_option_when still disable this trigger as well.
             /// 
-            /// Elements must fully match another option, or be a regex that can do so.
+            /// Elements must fully match another option, or be a full-string-match regex that can do so.
             /// </summary>
             [JsonProperty("hide_option_when")]
             public List<string> HideOptionWhen { get; set; } = new();

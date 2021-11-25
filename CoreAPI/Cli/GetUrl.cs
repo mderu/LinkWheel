@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using CoreAPI.Config;
+using CoreAPI.OutputFormat;
 using CoreAPI.RemoteHosts;
 using CoreAPI.Utils;
 using System;
@@ -21,17 +22,16 @@ namespace CoreAPI.Cli
         [Option("end-line")]
         public int? EndLine { get; set; }
 
-        public async Task<int> ExecuteAsync()
+        public async Task<OutputData> ExecuteAsync()
         {
             List<RepoConfig> repoConfigs = RepoConfigFile.Read();
 
-            if (TaskUtils.Try(await RemoteRepoHosts.TryGetRemoteLinkFromPath(this, repoConfigs), out Uri? remoteLink))
+            if (TaskUtils.Try(await RemoteRepoHosts.TryGetRemoteLinkFromPath(this, repoConfigs), out RepoConfig? repoConfig, out Uri ? remoteLink))
             {
-                // Forgiveness: above try passes
-                Trace.WriteLine(remoteLink!.ToString());
-                return 0;
+                // Forgiveness: above try passes, so both can be forgiven.
+                return new(0, new() { ["repoConfig"] = repoConfig!, ["url"] = remoteLink!.ToString() }, "(=url=)");
             }
-            return 1;
+            return new(1, new(), "");
         }
     }
 }
