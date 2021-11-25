@@ -97,25 +97,24 @@ namespace CoreAPI.Utils
 
         public static bool ArePathsEqual(string pathA, string pathB)
         {
-            return string.Equals(Path.GetFullPath(pathA), Path.GetFullPath(pathB), StringComparison.InvariantCultureIgnoreCase);
+            // TODO: Handle case sensitivity better than assuming it based on OS.
+            if (OperatingSystem.IsWindows())
+            {
+                return string.Equals(Path.GetFullPath(pathA), Path.GetFullPath(pathB), StringComparison.InvariantCultureIgnoreCase);
+            }
+            else
+            {
+                return string.Equals(Path.GetFullPath(pathA), Path.GetFullPath(pathB), StringComparison.Ordinal);
+            }
         }
 
         public static bool IsWithinPath(string parentPath, string potentialChildPath)
         {
-            return IsWithinPath(new DirectoryInfo(parentPath), new DirectoryInfo(potentialChildPath));
-        }
+            Uri parentUri = new(Path.GetFullPath(parentPath), UriKind.Absolute);
+            Uri childUri = new(Path.GetFullPath(potentialChildPath), UriKind.Absolute);
 
-        private static bool IsWithinPath(DirectoryInfo parentDir, DirectoryInfo potentialChildPath)
-        {
-            if (ArePathsEqual(parentDir.FullName, potentialChildPath.FullName))
-            {
-                return true;
-            }
-            if (potentialChildPath.Parent is null)
-            {
-                return false;
-            }
-            return IsWithinPath(parentDir, potentialChildPath.Parent);
+            Uri relUri = parentUri.MakeRelativeUri(childUri);
+            return !(relUri.IsAbsoluteUri || relUri.ToString().StartsWith(".."));
         }
     }
 }
