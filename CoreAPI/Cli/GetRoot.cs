@@ -3,6 +3,7 @@ using CoreAPI.Config;
 using CoreAPI.RemoteHosts;
 using CoreAPI.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,7 +13,7 @@ namespace CoreAPI.Cli
     public class GetRoot
     {
         [Option("path", Required = true)]
-        public string Path { get; set; }
+        public string Path { get; set; } = "";
 
         public async Task<int> ExecuteAsync()
         {
@@ -30,13 +31,14 @@ namespace CoreAPI.Cli
             var tasks = RemoteRepoHosts.All.Select(
                 async (hostingSolution) =>
                 {
-                    if (TaskUtils.Try(await hostingSolution.TryGetRepoConfig(Path), out RepoConfig newRepoConfig))
+                    if (TaskUtils.Try(await hostingSolution.TryGetRepoConfig(Path), out RepoConfig? newRepoConfig))
                     {
-                        return newRepoConfig;
+                        // Forgiveness: Non-null when if Try passes.
+                        return newRepoConfig!;
                     }
                     return null;
                 });
-            var results = (await Task.WhenAll(tasks)).Where(value => value != null).ToList();
+            var results = (await Task.WhenAll(tasks)).RemoveNulls().ToList();
             if (results.Count == 1)
             {
                 return new(true, results[0].Root);

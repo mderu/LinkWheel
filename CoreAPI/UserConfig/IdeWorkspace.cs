@@ -9,13 +9,13 @@ namespace CoreAPI.UserConfig
         public List<string> FnMatches { get; set; } = new() { };
 
         [JsonProperty("command")]
-        public string Command { get; set; }
+        public string Command { get; set; } = "";
 
         [JsonProperty("title")]
-        public string Title { get; set; }
+        public string Title { get; set; } = "";
 
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public string Description { get; set; } = "";
 
         /// <summary>
         /// A path to an image or executable. If an executable file is given, the icon it uses
@@ -23,6 +23,6 @@ namespace CoreAPI.UserConfig
         /// from the first argument of the command property.
         /// </summary>
         [JsonProperty("icon_source")]
-        public string Icon { get; set; }
+        public string Icon { get; set; } = "";
     }
 }

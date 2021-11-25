@@ -16,10 +16,10 @@ namespace CoreAPI.Cli
     public class GetActions
     {
         [Option("url", Required = true)]
-        public string Url { get; set; }
+        public string Url { get; set; } = "";
 
         [Value(0)]
-        public IEnumerable<string> BrowserArgs { get; set; }
+        public IEnumerable<string> BrowserArgs { get; set; } = new List<string>();
 
         public async Task<int> ExecuteAsync()
         {
@@ -54,12 +54,11 @@ namespace CoreAPI.Cli
                             IconLazy = new(() => iconPath.Icon),
                         });
 
-                        string parentDirectory = Path.GetDirectoryName(path);
                         IconResult dirIconPath = IconUtils.GetIconForFile(@"C:\Windows\explorer.exe");
                         elements.Add(new WheelElement()
                         {
                             Name = "Show in Explorer",
-                            Description = $"Opens {parentDirectory} in your file explorer.",
+                            Description = $"Shows {path} in your file explorer.",
                             // The "/select" argument requires backslashes. That comma is intentional. See
                             //   https://stackoverflow.com/questions/13680415/how-to-open-explorer-with-a-specific-file-selected
                             //   https://ss64.com/nt/explorer.html
@@ -79,7 +78,7 @@ namespace CoreAPI.Cli
 
             if (elements.Count == 0)
             {
-                if (IconUtils.TryGetWebsiteIconPath(new Uri(Url), out string localCachePath))
+                if (IconUtils.TryGetWebsiteIconPath(new Uri(Url), out string? localCachePath))
                 {
                     elements.Add(new WheelElement()
                     {
@@ -128,7 +127,9 @@ namespace CoreAPI.Cli
         {
             if (OperatingSystem.IsWindows())
             {
-                return bool.Parse((string)Registry.ClassesRoot.OpenSubKey(nameof(LinkWheel)).GetValue(LinkWheelConfig.Registry.EnabledValue, "false"));
+                RegistryKey? registryKey = Registry.ClassesRoot.OpenSubKey(nameof(LinkWheel));
+                return bool.Parse((string?)registryKey?.GetValue(LinkWheelConfig.Registry.EnabledValue, "false")
+                    ?? "false");
             }
             else
             {

@@ -31,7 +31,8 @@ namespace CoreAPI.Utils
                 for (var i = 0; i < args.Length; i++)
                 {
                     var p = Marshal.ReadIntPtr(argv, i * IntPtr.Size);
-                    args[i] = Marshal.PtrToStringUni(p);
+                    // Forgiveness: `p` is not null.
+                    args[i] = Marshal.PtrToStringUni(p)!;
                 }
                 return args;
             }

@@ -21,17 +21,23 @@ namespace CoreAPI.RemoteHosts
         {
             List<RemoteRepoHost> objects = new();
             List<int> priorities = new();
-            foreach (Type type in Assembly.GetAssembly(typeof(RemoteRepoHost)).GetTypes()
+            // Forgiveness: we know the type exists in an assembly.
+            foreach (Type type in Assembly.GetAssembly(typeof(RemoteRepoHost))!.GetTypes()
                 .Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(typeof(RemoteRepoHost))))
             {
-                HostPriorityAttribute attribute = type.GetCustomAttribute<HostPriorityAttribute>();
+                HostPriorityAttribute? attribute = type.GetCustomAttribute<HostPriorityAttribute>();
                 if (attribute is null)
                 {
                     throw new Exception(
                         $"All inheritors of {nameof(RemoteRepoHost)} must have a {nameof(HostPriorityAttribute)}.");
                 }
                 priorities.Add(attribute.Priority);
-                objects.Add((RemoteRepoHost)Activator.CreateInstance(type));
+                var instance = (RemoteRepoHost?)Activator.CreateInstance(type);
+                if (instance is null)
+                {
+                    throw new InvalidOperationException($"{type.FullName} needs to be instantiatable.");
+                }
+                objects.Add(instance);
             }
             return objects
                 .Zip(priorities, (remoteRepoHost, priority) => (remoteRepoHost, priority))
@@ -51,7 +57,7 @@ namespace CoreAPI.RemoteHosts
                     }
                     return null;
                 });
-            var results = Task.WhenAll(tasks).Result.Where(value => value != null).ToList();
+            var results = Task.WhenAll(tasks).Result.RemoveNulls().ToList();
             if (results.Count == 1)
             {
                 localPath = results[0];
@@ -75,17 +81,18 @@ namespace CoreAPI.RemoteHosts
         /// <param name="repoCandidates">The list of all repo configs to check against.</param>
         /// <param name="remoteLink"></param>
         /// <returns></returns>
-        public static async Task<(bool, Uri)> TryGetRemoteLinkFromPath(GetUrl request, List<RepoConfig> repoCandidates)
+        public static async Task<(bool, Uri?)> TryGetRemoteLinkFromPath(GetUrl request, List<RepoConfig> repoCandidates)
         {
             string actualPath = request.File;
-            DirectoryInfo curDir;
-            if (Directory.Exists(actualPath))
+            DirectoryInfo? curDir;
+            if (File.Exists(actualPath))
             {
-                curDir = new DirectoryInfo(actualPath);
+                // Forgiveness: Files always have a directory they reside in.
+                curDir = new FileInfo(actualPath).Directory!;
             }
             else
             {
-                curDir = new FileInfo(actualPath).Directory;
+                curDir = new DirectoryInfo(actualPath);
             }
 
             while(curDir != null)

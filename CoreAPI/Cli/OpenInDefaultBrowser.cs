@@ -16,9 +16,9 @@ namespace CoreAPI.Cli
     public class OpenInDefaultBrowser
     {
         [Option("url", Required = true)]
-        public string Url { get; set; }
+        public string Url { get; set; } = "";
 
-        public Task<int> ExecuteAsync()
+        public async Task<int> ExecuteAsync()
         {
             // Always ensure LinkWheel is installed before running a command. No point in making the user
             // run an install command before being able to use the executable.
@@ -35,11 +35,19 @@ namespace CoreAPI.Cli
                 {
                     registryKey = LinkWheelConfig.Registry.DefaultBrowserHttpsKey;
                 }
-                string classKey = (string)Registry.GetValue(registryKey, LinkWheelConfig.Registry.DefaultBrowserValue, "MSEdgeHTM");
+                string? classKey = (string?)Registry.GetValue(registryKey, 
+                    LinkWheelConfig.Registry.DefaultBrowserValue, 
+                    LinkWheelConfig.Registry.DefaultBrowserProgId);
+                if (classKey is null)
+                {
+                    Console.Error.WriteLine($"Unable to open url {Url}: the registry key {registryKey} does not exist.");
+                    return 1;
+                }
+
                 //TO(MAYBE)DO: Could read from HKEY_CLASSES_ROOT\LinkWheel\prev{key}, but that key includes the full path
                 // instead of the CLASSES_ROOT path that we use here for simplification.
                 // Optionally, when we install we can also write this key with the HKEY_CLASSES_ROOT form
-                string commandline = (string)Registry.GetValue($@"HKEY_CLASSES_ROOT\{classKey}\shell\open\command", "", "");
+                string commandline = (string)(Registry.GetValue($@"HKEY_CLASSES_ROOT\{classKey}\shell\open\command", "", "") ?? "");
 
                 string[] arguments = CliUtils.CommandLineToArgs(commandline);
                 if (arguments[0].EndsWith("linkWheel.exe", StringComparison.InvariantCultureIgnoreCase))
@@ -60,7 +68,7 @@ namespace CoreAPI.Cli
                     UseShellExecute = true,
                 };
                 Process.Start(startInfo);
-                return Task.FromResult(0);
+                return 0;
             }
             else
             {

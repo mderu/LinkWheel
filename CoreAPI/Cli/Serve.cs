@@ -14,10 +14,10 @@ namespace CoreAPI.Cli
     public class Serve
     {
         [Option("url", Required = true)]
-        public string Url { get; set; }
+        public string Url { get; set; } = "";
 
         [Value(0)]
-        public IEnumerable<string> BrowserArgs { get; set; }
+        public IEnumerable<string> BrowserArgs { get; set; } = new List<string>();
 
         public async Task<List<WheelElement>> ExecuteAsync()
         {

@@ -34,8 +34,14 @@ namespace CoreAPI.RemoteHosts
                 return (false, "");
             }
 
-            // Note that we don't cache the stream because it could be changed.
-            string[] streamParts = (await GetStream(repoConfig))[2..].Split("/");
+            // Note that we don't cache the stream because it can be changed.
+            var stream = await GetStream(repoConfig);
+            // TODO: Find out what path is used if the repo doesn't use streams.
+            if (stream is null)
+            {
+                return (false, "");
+            }
+            string[] streamParts = stream[2..].Split("/");
             
             for (int streamPartIndex = 0; streamPartIndex < streamParts.Length; streamPartIndex++)
             {
@@ -49,7 +55,7 @@ namespace CoreAPI.RemoteHosts
             return (true, Path.Combine(repoConfig.Root, string.Join('/', requestedParts.Skip(partIndex))));
         }
 
-        public override async Task<(bool, RepoConfig)> TryGetRepoConfig(string localRepoRoot)
+        public override async Task<(bool, RepoConfig?)> TryGetRepoConfig(string localRepoRoot)
         {
             if (!await IsP4Installed())
             {
@@ -64,7 +70,13 @@ namespace CoreAPI.RemoteHosts
             for (int i = 0; i < logins.Count; i++)
             {
                 (string port, string username) = logins[i];
-                swarmToClients[i] = (await GetSwarmUrl(port, username), await GetP4Roots(port, username));
+                string? url = await GetSwarmUrl(port, username);
+                List<string> clientRoots = await GetClientRootsForServer(port, username);
+                if (url is null)
+                {
+                    continue;
+                }
+                swarmToClients[i] = (url, clientRoots);
             }
 
             for (int i = 0; i < logins.Count; i++)
@@ -102,7 +114,14 @@ namespace CoreAPI.RemoteHosts
         {
             string actualPath = Path.GetRelativePath(repoConfig.Root, request.File);
 
-            string streamDepotPath = (await GetStream(repoConfig)).Replace("//", "/");
+            string? stream = await GetStream(repoConfig);
+
+            if (stream is null)
+            {
+                throw new Exception("Unable to get remote links for Perforce clients that do not use streams.");
+            }
+
+            string streamDepotPath = stream.Replace("//", "/");
 
             Uri returnValue = new(
                 Path.Combine(
@@ -122,7 +141,7 @@ namespace CoreAPI.RemoteHosts
             return returnValue;
         }
 
-        private static async Task<List<string>> GetP4Roots(string port, string username)
+        private static async Task<List<string>> GetClientRootsForServer(string port, string username)
         {
             var stdOutBuffer = new StringBuilder();
             await CliWrap.Cli.Wrap("p4")
@@ -170,7 +189,7 @@ namespace CoreAPI.RemoteHosts
         /// </summary>
         /// <param name="repoConfig"></param>
         /// <returns></returns>
-        private static async Task<string> GetStream(RepoConfig repoConfig)
+        private static async Task<string?> GetStream(RepoConfig repoConfig)
         {
             string port = repoConfig.RemoteRepoHostKeys["port"];
             string username = repoConfig.RemoteRepoHostKeys["username"];
@@ -195,7 +214,7 @@ namespace CoreAPI.RemoteHosts
             return null;
         }
 
-        private static async Task<string> GetSwarmUrl(string port, string username)
+        private static async Task<string?> GetSwarmUrl(string port, string username)
         {
             var stdOutBuffer = new StringBuilder();
             await CliWrap.Cli.Wrap("p4")
