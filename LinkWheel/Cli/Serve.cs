@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CoreAPI.Config;
 using System.Linq;
+using CoreAPI.Cli;
 
-namespace CoreAPI.Cli
+namespace LinkWheel.Cli
 {
     /// <summary>
     /// A wrapper that allows LinkWheel's GUI to call this function and get a List<WheelElement>

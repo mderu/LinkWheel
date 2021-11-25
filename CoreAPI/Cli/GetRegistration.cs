@@ -1,8 +1,7 @@
 ﻿using CommandLine;
 using CoreAPI.Config;
+using CoreAPI.OutputFormat;
 using CoreAPI.Utils;
-using Newtonsoft.Json;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,18 +17,12 @@ namespace CoreAPI.Cli
             "If the given path is registered, writes the registered RepoConfig and return code 0. " +
             "Otherwise, returns 1.";
 
-        public async Task<int> ExecuteAsync()
+        public async Task<OutputData> ExecuteAsync()
         {
-            if (TaskUtils.Try(await new GetRoot() { Path = Path }.TryGet(), out string root))
-            {
-                var results = RepoConfigFile.Read().Where(x => FileUtils.ArePathsEqual(x.Root, root));
-                if (results.Any())
-                {
-                    Console.WriteLine(JsonConvert.SerializeObject(results.First()));
-                    return 0;
-                }
-            }
-            return 1;
+            // TODO: Can probably delete either this or `get-root`.
+            var result = await new GetRoot() { Path = Path }.ExecuteAsync();
+            result.Format = "(=results[0]=)";
+            return result;
         }
     }
 }

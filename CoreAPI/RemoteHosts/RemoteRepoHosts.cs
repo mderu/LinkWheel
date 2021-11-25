@@ -81,7 +81,7 @@ namespace CoreAPI.RemoteHosts
         /// <param name="repoCandidates">The list of all repo configs to check against.</param>
         /// <param name="remoteLink"></param>
         /// <returns></returns>
-        public static async Task<(bool, Uri?)> TryGetRemoteLinkFromPath(GetUrl request, List<RepoConfig> repoCandidates)
+        public static async Task<(bool, RepoConfig?, Uri?)> TryGetRemoteLinkFromPath(GetUrl request, List<RepoConfig> repoCandidates)
         {
             string actualPath = request.File;
             DirectoryInfo? curDir;
@@ -101,13 +101,13 @@ namespace CoreAPI.RemoteHosts
                 {
                     if (FileUtils.ArePathsEqual(candidate.Root, curDir.FullName))
                     {
-                        return (true, await candidate.RemoteRepoHostType.GetRemoteLink(request, candidate));
+                        return (true, candidate, await candidate.RemoteRepoHostType.GetRemoteLink(request, candidate));
                     }
                 }
                 curDir = curDir.Parent;
             }
 
-            return (false, null);
+            return (false, null, null);
         }
     }
 }
