@@ -60,7 +60,9 @@ namespace CoreAPI.Installers
 
         public bool IsEnabled()
         {
-            return bool.Parse((string)Registry.ClassesRoot.OpenSubKey(nameof(LinkWheel)).GetValue(LinkWheelConfig.Registry.EnabledValue, "false"));
+            return bool.Parse(
+                (string?)Registry.ClassesRoot.OpenSubKey(nameof(LinkWheel))
+                ?.GetValue(LinkWheelConfig.Registry.EnabledValue, "false") ?? "false");
         }
 
         /// <summary>
@@ -68,9 +70,18 @@ namespace CoreAPI.Installers
         /// </summary>
         private static void UpdateSystemPath()
         {
-            using var envKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment", true);
-            string oldPath = (string)envKey.GetValue("Path", "");
-            string dirName = new FileInfo(Environment.GetCommandLineArgs()[0]).DirectoryName;
+            string systemPathRegistryKey = @"SYSTEM\CurrentControlSet\Control\Session Manager\Environment";
+            using var envKey = Registry.LocalMachine.OpenSubKey(systemPathRegistryKey, true);
+            if (envKey is null)
+            {
+                throw new Exception($"Registry key {systemPathRegistryKey} does not exist.");
+            }
+
+            string oldPath = (string?)envKey.GetValue("Path", "") ?? "";
+
+            // Forgiveness: We know that Environment.GetCommandLineArgs()[0] cannot be a drive letter
+            // (since this executable is a file), and therefore DirectoryName can never be null.
+            string dirName = new FileInfo(Environment.GetCommandLineArgs()[0]).DirectoryName!;
             HashSet<string> paths = new(oldPath.Split(";"));
             // Returns true if it is new. If it's new, then append to the end. Otherwsie, let it go.
             // We do this so the HashSet doesn't re-order the path directories every time this runs.
@@ -86,9 +97,16 @@ namespace CoreAPI.Installers
         /// </summary>
         private static void RemoveSystemPath()
         {
-            using var envKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment", true);
-            string oldPath = (string)envKey.GetValue("Path", "");
-            string dirName = new FileInfo(Environment.GetCommandLineArgs()[0]).DirectoryName;
+            string systemPathRegistryKey = @"SYSTEM\CurrentControlSet\Control\Session Manager\Environment";
+            using var envKey = Registry.LocalMachine.OpenSubKey(systemPathRegistryKey, true);
+            if (envKey is null)
+            {
+                throw new Exception($"Registry key {systemPathRegistryKey} does not exist.");
+            }
+            string oldPath = (string?)envKey.GetValue("Path", "") ?? "";
+            // Forgiveness: We know that Environment.GetCommandLineArgs()[0] cannot be a drive letter
+            // (since this executable is a file), and therefore DirectoryName can never be null.
+            string dirName = new FileInfo(Environment.GetCommandLineArgs()[0]).DirectoryName!;
             envKey.SetValue("Path", oldPath.Replace($";{dirName}", ""));
             PSendNotifyMessage.SendEnvironmentUpdated();
         }
@@ -119,7 +137,7 @@ namespace CoreAPI.Installers
                     Verb = "runas",
                     UseShellExecute = true,
                 };
-                Process.Start(startInfo).WaitForExit();
+                Process.Start(startInfo)?.WaitForExit();
                 isElevatedProcess = false;
             }
         }
@@ -151,12 +169,17 @@ namespace CoreAPI.Installers
             executablePath = executablePath.Replace("LinkWheelCli.exe", "LinkWheel.exe");
 
             var browserClasses = GetAllBrowserRegistryClassPaths();
+            using RegistryKey? classKey = Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true);
+            if (classKey is null)
+            {
+                throw new InvalidOperationException("Unable to write to the registry. Are you elevated?");
+            }
             foreach (var browserClass in browserClasses)
             {
                 // Only mess with the local user's browser paths. Don't install onto LocalMachine.
                 string cmdlineRegistryPath = $@"{browserClass}\shell\open\command";
                 string cmdlineRegistryUserPath = cmdlineRegistryPath.Replace("HKEY_CLASSES_ROOT", @"HKEY_CURRENT_USER\SOFTWARE\Classes");
-                string prevCmdline = (string)Registry.GetValue(cmdlineRegistryPath, "", "");
+                string prevCmdline = (string?)Registry.GetValue(cmdlineRegistryPath, "", "") ?? "";
                 if (string.IsNullOrWhiteSpace(prevCmdline))
                 {
                     continue;
@@ -166,15 +189,15 @@ namespace CoreAPI.Installers
                 {
                     // If a previous version of LinkWheel is already installed, update the string in case the path
                     // has changed.
-                    var addedArgs = (string)Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true).GetValue($"prev{browserClass}", "");
+                    var addedArgs = classKey.GetValue($"prev{browserClass}", "");
                     Registry.SetValue(cmdlineRegistryUserPath, "", $"\"{executablePath}\" serve --url %1 -- {addedArgs}");
                 }
                 else
                 {
                     // Store the current value. If the browser is installed only for the current user, then we wouldn't
                     // be able to find the original commandline anywhere.
-                    Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true).SetValue($"prev{browserClass}", prevCmdline);
-                    Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true).SetValue($"prev{cmdlineRegistryPath}", prevCmdline);
+                    classKey.SetValue($"prev{browserClass}", prevCmdline);
+                    classKey.SetValue($"prev{cmdlineRegistryPath}", prevCmdline);
                     // Set the current user's shell/open/command value. If the browser is installed at the machine level,
                     // it probably won't bother touching this key during updates/re-installs.
                     Registry.SetValue(cmdlineRegistryUserPath, "", $"\"{executablePath}\" serve --url %1 -- {prevCmdline}");
@@ -184,25 +207,28 @@ namespace CoreAPI.Installers
 
         private static void WriteRegistryClassKey()
         {
-            using var classKey = Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true);
-            var nonNullClassKey = classKey;
-            if (classKey == null)
+            var classKey = Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true);
+            if (classKey is null)
             {
-                nonNullClassKey = Registry.CurrentUser.CreateSubKey(LinkWheelConfig.Registry.ClassKey, true);
+                classKey = Registry.CurrentUser.CreateSubKey(LinkWheelConfig.Registry.ClassKey, true);
             }
-            nonNullClassKey.SetValue(LinkWheelConfig.Registry.EnabledValue, true);
+            if (classKey is null)
+            {
+                throw new InvalidOperationException($"Unable to create registry key {LinkWheelConfig.Registry.ClassKey}. Are you elevated?");
+            }
+            classKey.SetValue(LinkWheelConfig.Registry.EnabledValue, true);
+            classKey.Dispose();
         }
 
         private static void RemoveRegistryClassKey()
         {
             using var classKey = Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true);
-            var nonNullClassKey = classKey;
-            if (classKey == null)
+            if (classKey is null)
             {
                 return;
             }
-            nonNullClassKey.DeleteValue(LinkWheelConfig.Registry.EnabledValue);
-            nonNullClassKey.DeleteValue("");
+            classKey.DeleteValue(LinkWheelConfig.Registry.EnabledValue);
+            classKey.DeleteValue("");
         }
 
         /// <remarks>
@@ -221,7 +247,7 @@ namespace CoreAPI.Installers
             foreach (var browserClass in browserClasses)
             {
                 string cmdlineRegistryPath = $@"{browserClass}\shell\open\command";
-                string prevCmdline = (string)Registry.GetValue(cmdlineRegistryPath, "", "");
+                string prevCmdline = (string?)Registry.GetValue(cmdlineRegistryPath, "", "") ?? "";
                 if (string.IsNullOrWhiteSpace(prevCmdline))
                 {
                     continue;
@@ -229,7 +255,15 @@ namespace CoreAPI.Installers
                 string[] prevArgs = CliUtils.CommandLineToArgs(prevCmdline);
                 if (prevArgs[0].EndsWith("linkWheel.exe", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var prevCommandline = (string)Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey).GetValue($"prev{browserClass}", "");
+                    var classKey = Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey);
+                    if (classKey is null)
+                    {
+                        throw new InvalidOperationException(
+                            $"Unable to access registry key {LinkWheelConfig.Registry.ClassKey}. " +
+                            $"Is LinkWheel installed? Are you elevated?");
+                    }
+                    var prevCommandline = (string?)classKey.GetValue($"prev{browserClass}", "") ?? "";
+
                     Registry.SetValue(cmdlineRegistryPath, "", prevCommandline);
                 }
             }
@@ -243,7 +277,7 @@ namespace CoreAPI.Installers
                               Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Clients\StartMenuInternet");
 
             HashSet<string> browserClasses = new();
-            foreach (var internetKey in new[] { machineInternetKey, userInternetKey }.Where(key => key != null))
+            foreach (var internetKey in new[] { machineInternetKey, userInternetKey }.RemoveNulls())
             {
                 foreach (var browserName in internetKey.GetSubKeyNames())
                 {
@@ -251,7 +285,7 @@ namespace CoreAPI.Installers
                     var browserKey = internetKey.OpenSubKey(browserName);
 
                     // Key containing executable path
-                    using var urlAssociations = browserKey.OpenSubKey(@"Capabilities\URLAssociations");
+                    using var urlAssociations = browserKey?.OpenSubKey(@"Capabilities\URLAssociations");
                     if (urlAssociations == null)
                     {
                         continue;
@@ -263,7 +297,7 @@ namespace CoreAPI.Installers
                         {
                             continue;
                         }
-                        var className = (string)urlAssociations.GetValue(protocol);
+                        var className = (string?)urlAssociations.GetValue(protocol);
                         if (string.IsNullOrWhiteSpace(className))
                         {
                             continue;
@@ -278,7 +312,7 @@ namespace CoreAPI.Installers
             }
 
             // Check if edge is a viable option.
-            using var edgeClassKey = Registry.ClassesRoot.OpenSubKey("MSEdgeHTM");
+            using var edgeClassKey = Registry.ClassesRoot.OpenSubKey(LinkWheelConfig.Registry.DefaultBrowserProgId);
             if (edgeClassKey != null)
             {
                 browserClasses.Add(edgeClassKey.ToString());

@@ -15,7 +15,7 @@ namespace CoreAPI.Cli
     public class RegisterRepo
     {
         [Option("path", Required = true)]
-        public string Path { get; set; }
+        public string Path { get; set; } = "";
 
         public const string HelpText = "Registers the repo the given path is a part of, if the path is valid. " +
             "Upon failure to register the repo, the return code is 1. " +
@@ -27,13 +27,14 @@ namespace CoreAPI.Cli
             var tasks = RemoteRepoHosts.All.Select(
                 async (hostingSolution) =>
                 {
-                    if (TaskUtils.Try(await hostingSolution.TryGetRepoConfig(Path), out RepoConfig newRepoConfig))
+                    if (TaskUtils.Try(await hostingSolution.TryGetRepoConfig(Path), out RepoConfig? newRepoConfig))
                     {
-                        return newRepoConfig;
+                        // Forgiveness: not null if the Try function return true.
+                        return newRepoConfig!;
                     }
                     return null;
                 });
-            var results = (await Task.WhenAll(tasks)).Where(value => value != null).ToList();
+            var results = (await Task.WhenAll(tasks)).RemoveNulls().ToList();
             if (results.Count == 1)
             {
                 Register(results[0]);

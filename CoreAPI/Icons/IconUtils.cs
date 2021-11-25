@@ -1,6 +1,7 @@
 ﻿using CoreAPI.Config;
 using Microsoft.Win32;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -21,8 +22,20 @@ namespace CoreAPI.Icons
             string browserExePath;
             if (OperatingSystem.IsWindows())
             {
-                string browserClass = (string)Registry.GetValue(LinkWheelConfig.Registry.DefaultBrowserHttpKey, LinkWheelConfig.Registry.DefaultBrowserValue, "");
-                browserExePath = ((string)Registry.GetValue($@"HKEY_CLASSES_ROOT\{browserClass}\DefaultIcon", "", "")).Split(',')[0];
+                string? browserClass = (string?)Registry.GetValue(
+                    LinkWheelConfig.Registry.DefaultBrowserHttpKey, 
+                    LinkWheelConfig.Registry.DefaultBrowserValue, 
+                    LinkWheelConfig.Registry.DefaultBrowserProgId);
+                if (browserClass is null)
+                {
+                    throw new Exception($"The registry key {LinkWheelConfig.Registry.DefaultBrowserHttpKey} does not exist.");
+                }
+                string browserKey = $@"HKEY_CLASSES_ROOT\{browserClass}\DefaultIcon";
+                browserExePath = ((string?)Registry.GetValue(browserKey, "", "") ?? "").Split(',')[0];
+                if (string.IsNullOrWhiteSpace(browserExePath))
+                {
+                    throw new Exception($"The registry key {browserKey} does not exist.");
+                }
             }
             else
             {
@@ -55,13 +68,11 @@ namespace CoreAPI.Icons
         public static bool TryGetWebsiteIconPath(Uri url, out string localPath)
         {
             string host = url.Host;
-            string localCachePath = Path.Combine(LinkWheelConfig.IconCachePath, $"{host}.png");
-            if (File.Exists(localCachePath))
+            localPath = Path.Combine(LinkWheelConfig.IconCachePath, $"{host}.png");
+            if (File.Exists(localPath))
             {
-                localPath = localCachePath;
                 return true;
             }
-            localPath = null;
             return false;
         }
 

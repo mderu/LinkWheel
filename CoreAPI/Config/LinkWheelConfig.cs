@@ -30,7 +30,8 @@ namespace CoreAPI.Config
 
             public const string DefaultBrowserHttpKey = @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\Shell\Associations\URLAssociations\http\UserChoice";
             public const string DefaultBrowserHttpsKey = @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\Shell\Associations\URLAssociations\https\UserChoice";
-            public const string DefaultBrowserValue = @"ProgId";
+            public const string DefaultBrowserValue = "ProgId";
+            public const string DefaultBrowserProgId = "MSEdgeHTM";
             /// <remarks>
             /// This value is under <see cref="ClassKey"/> within the Registry.
             /// </remarks>

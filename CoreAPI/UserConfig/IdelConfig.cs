@@ -28,7 +28,7 @@ namespace CoreAPI.UserConfig
             public List<string> HideOptionWhen { get; set; } = new();
 
             [JsonProperty("editor")]
-            public Editor Editor { get; set; }
+            public Editor? Editor { get; set; }
 
             // TODO: Stretch goal
             /// <summary>
@@ -67,15 +67,15 @@ namespace CoreAPI.UserConfig
             /// already. If you think there's a common workspace configuration that was missed here, feel free to
             /// submit a pull request to add it to the list of defaults.
             /// </summary>
-            [JsonProperty("type")]
-            public string Type { get; set; }
+            [JsonProperty("type", Required = Required.DisallowNull)]
+            public string Type { get; set; } = "";
 
             /// <summary>
             /// Overrides the specified type. Opens a workspace file. The path provided can either be relative to the
             /// repo root or absolute (use of absolute paths is only recommended for global/.user.idelconfig files). 
             /// </summary>
-            [JsonProperty("workspacePath")]
-            public string WorkspacePath { get; set; }
+            [JsonProperty("workspacePath", Required = Required.DisallowNull)]
+            public string WorkspacePath { get; set; } = "";
         }
     }
 }

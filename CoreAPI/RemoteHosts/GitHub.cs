@@ -47,7 +47,7 @@ namespace CoreAPI.RemoteHosts
                     string.Join("/", requestedParts.Skip(5)))));
         }
 
-        public override async Task<(bool, RepoConfig)> TryGetRepoConfig(string localRepoRoot)
+        public override async Task<(bool, RepoConfig?)> TryGetRepoConfig(string pathInRepo)
         {
             // TODO: The logic here will match pretty much any Git repo. We need to see if there's a way
             // we can differentiate GitHub from other git hosting solutions.
@@ -61,7 +61,7 @@ namespace CoreAPI.RemoteHosts
             // For now, we assume the user didn't super configure their git repo to use something
             // other than "origin". Definitely something we'll have to revisit, but it works for
             // the majority of git users.
-            (bool isValid, string remoteOrigin) = await GetRemoteOriginUrl(localRepoRoot);
+            (bool isValid, string remoteOrigin) = await GetRemoteOriginUrl(pathInRepo);
             if (isValid)
             {
                 return (
@@ -70,7 +70,7 @@ namespace CoreAPI.RemoteHosts
                     {
                         // Trims ".git"
                         RemoteRootUrl = remoteOrigin[..^4],
-                        Root = (await GetRepoRoot(localRepoRoot)).root,
+                        Root = (await GetRepoRoot(pathInRepo)).root,
                         RawRemoteRepoHostType = nameof(GitHub),
                     }
                 );
@@ -94,7 +94,8 @@ namespace CoreAPI.RemoteHosts
             }
 
             string remoteBranch;
-            string localPathDirectory = isDirectory ? fullPath : Path.GetDirectoryName(fullPath);
+            // Forgiveness: we know fullPath is not a directory, so it must have a parent directory.
+            string localPathDirectory = isDirectory ? fullPath : Path.GetDirectoryName(fullPath)!;
             if (TaskUtils.Try(await GetRemoteBranch(localPathDirectory), out remoteBranch))
             {
 
@@ -161,7 +162,8 @@ namespace CoreAPI.RemoteHosts
             {
                 if (File.Exists(path))
                 {
-                    path = new FileInfo(path).Directory.FullName;
+                    // Forgiveness: we know Path is a file, so it must have a directory.
+                    path = new FileInfo(path).Directory!.FullName;
                 }
                 else
                 {
@@ -194,9 +196,16 @@ namespace CoreAPI.RemoteHosts
         public static async Task<(bool success, string root)> GetRepoRoot(string localPath)
         {
             var stdOutBuffer = new StringBuilder();
+
+            if (File.Exists(localPath))
+            {
+                // Forgiveness: must have a directory if it exists as a file.
+                localPath = Path.GetDirectoryName(localPath)!;
+            }
+
             var result = await CliWrap.Cli.Wrap("git")
                 .WithArguments("rev-parse --show-toplevel")
-                .WithWorkingDirectory(Path.GetDirectoryName(localPath))
+                .WithWorkingDirectory(localPath)
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
                 .WithValidation(CommandResultValidation.None)
                 .ExecuteAsync();

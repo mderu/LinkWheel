@@ -46,12 +46,13 @@ namespace CoreAPI.Icons
 
         private static IntPtr GetJumboIcon(int iImage)
         {
-            IImageList spiml = null;
+            IImageList? spiml = null;
             Guid guil = new(IID_IImageList2);//or IID_IImageList
 
-            Shell32.SHGetImageList(Shell32.SHIL_JUMBO, ref guil, ref spiml);
+            // Forgiveness: we intentionally pass null, because that's how the API works.
+            Shell32.SHGetImageList(Shell32.SHIL_JUMBO, ref guil, ref spiml!);
             IntPtr hIcon = IntPtr.Zero;
-            spiml.GetIcon(iImage, Shell32.ILD_TRANSPARENT | Shell32.ILD_IMAGE, ref hIcon);
+            spiml?.GetIcon(iImage, Shell32.ILD_TRANSPARENT | Shell32.ILD_IMAGE, ref hIcon);
 
             return hIcon;
         }

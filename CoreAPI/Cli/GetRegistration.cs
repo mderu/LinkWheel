@@ -12,7 +12,7 @@ namespace CoreAPI.Cli
     public class GetRegistration
     {
         [Option("path", Required = true)]
-        public string Path { get; set; }
+        public string Path { get; set; } = "";
 
         public const string HelpText = 
             "If the given path is registered, writes the registered RepoConfig and return code 0. " +

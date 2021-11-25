@@ -12,6 +12,11 @@ namespace CoreAPI.Utils
         /// </summary>
         public static void Lock(string path, Action<FileStream> action)
         {
+            if (Directory.Exists(path))
+            {
+                throw new InvalidOperationException("Cannot write to a directory.");
+            }
+
             var autoResetEvent = new AutoResetEvent(false);
 
             while (true)
@@ -29,7 +34,8 @@ namespace CoreAPI.Utils
                 catch (IOException)
                 {
                     var fileSystemWatcher =
-                        new FileSystemWatcher(Path.GetDirectoryName(path))
+                        // Forgiveness: Assume path is a file, or would have created a file.
+                        new FileSystemWatcher(Path.GetDirectoryName(path)!)
                         {
                             // May have been fixed at some point, but we don't set a file path filter
                             // here because it may not work on Linux:
@@ -59,6 +65,11 @@ namespace CoreAPI.Utils
         /// </summary>
         public static string ReadAllTextWait(string path)
         {
+            if (Directory.Exists(path))
+            {
+                throw new InvalidOperationException("Cannot write to a directory.");
+            }
+
             var autoResetEvent = new AutoResetEvent(false);
 
             while (true)
@@ -75,7 +86,8 @@ namespace CoreAPI.Utils
                 catch (IOException)
                 {
                     var fileSystemWatcher =
-                        new FileSystemWatcher(Path.GetDirectoryName(path))
+                        // Forgiveness: Assume path is a file, or would have created a file.
+                        new FileSystemWatcher(Path.GetDirectoryName(path)!)
                         {
                             // See note in Lock() above.
                             EnableRaisingEvents = true
@@ -98,14 +110,16 @@ namespace CoreAPI.Utils
         public static bool ArePathsEqual(string pathA, string pathB)
         {
             // TODO: Handle case sensitivity better than assuming it based on OS.
+            StringComparison comparison;
             if (OperatingSystem.IsWindows())
             {
-                return string.Equals(Path.GetFullPath(pathA), Path.GetFullPath(pathB), StringComparison.InvariantCultureIgnoreCase);
+                comparison = StringComparison.InvariantCultureIgnoreCase;
             }
             else
             {
-                return string.Equals(Path.GetFullPath(pathA), Path.GetFullPath(pathB), StringComparison.Ordinal);
+                comparison = StringComparison.Ordinal;
             }
+            return string.Equals(Path.GetFullPath(pathA), Path.GetFullPath(pathB), comparison);
         }
 
         public static bool IsWithinPath(string parentPath, string potentialChildPath)

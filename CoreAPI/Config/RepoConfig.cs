@@ -33,7 +33,7 @@ namespace CoreAPI.Config
         /// The local path to the root directory of this repo.
         /// </summary>
         [JsonProperty("root", Required = Required.DisallowNull)]
-        public string Root { get; init; }
+        public string Root { get; init; } = "";
 
         /// <summary>
         /// The remote url to the root URI of this repo.
@@ -47,16 +47,16 @@ namespace CoreAPI.Config
         /// file.
         /// </remarks>
         [JsonProperty("remote_root_uri", Required = Required.DisallowNull)]
-        public string RemoteRootUrl { get; init; }
+        public string RemoteRootUrl { get; init; } = "";
 
         /// <summary>
         /// The class name of the remote repo host provider to use to translate the remote root url to a local file.
         /// </summary>
-        [JsonProperty("remote_repo_host_type")]
-        public string RawRemoteRepoHostType { get; init; }
+        [JsonProperty("remote_repo_host_type", Required = Required.DisallowNull)]
+        public string RawRemoteRepoHostType { get; init; } = "";
 
         [JsonIgnore]
-        private RemoteRepoHost remoteRepoHostType;
+        private RemoteRepoHost? remoteRepoHostType;
 
         /// <summary>
         /// A reference to the <see cref="RemoteRepoHost"/> responsible for 
@@ -69,11 +69,16 @@ namespace CoreAPI.Config
                 remoteRepoHostType ??= RemoteRepoHosts.All
                     .Where(host => host.GetType().Name == RawRemoteRepoHostType)
                     .FirstOrDefault();
+                if (remoteRepoHostType is null)
+                {
+                    throw new System.InvalidOperationException(
+                        $"No known remote_repo_host_type of type {RawRemoteRepoHostType}");
+                }
                 return remoteRepoHostType;
             }
         }
 
         [JsonProperty("remote_repo_host_keys")]
-        public Dictionary<string, string> RemoteRepoHostKeys { get; set; }
+        public Dictionary<string, string> RemoteRepoHostKeys { get; set; } = new Dictionary<string, string>();
     }
 }

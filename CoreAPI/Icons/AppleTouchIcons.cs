@@ -24,7 +24,7 @@ namespace CoreAPI.Icons
             return new Bitmap(downloadedImage);
         }
 
-        public static IconResult GetFromUrl(Uri url, Bitmap defaultIcon = null)
+        public static IconResult GetFromUrl(Uri url, Bitmap? defaultIcon = null)
         {
             if (IconUtils.TryGetWebsiteIconPath(url, out string localCachePath))
             {
@@ -32,8 +32,7 @@ namespace CoreAPI.Icons
             }
 
             // Attempt to download from common location.
-            Bitmap icon = null;
-            bool iconIsMissing = false;
+            Bitmap? icon = null;
             using (var client = new WebClient())
             {
                 try
@@ -70,11 +69,6 @@ namespace CoreAPI.Icons
                                     break;
                                 }
                             }
-                            if (!broken)
-                            {
-                                icon = defaultIcon;
-                                iconIsMissing = true;
-                            }
                         }
                     }
                     catch (WebException)
@@ -84,9 +78,12 @@ namespace CoreAPI.Icons
                     }
                 }
             }
-            if (!iconIsMissing)
+            // TODO: Should probably cache that we've already tried to get an icon from this website,
+            // but it keeps failing.
+            if (icon is not null)
             {
                 Directory.CreateDirectory(LinkWheelConfig.IconCachePath);
+                // Forgiveness: iconIsMissing is always true if icon can be null.
                 icon.Save(localCachePath);
                 return new(icon, localCachePath);
             }
