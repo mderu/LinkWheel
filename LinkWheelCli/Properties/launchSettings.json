@@ -35,7 +35,8 @@
     },
     "TestOutput": {
       "commandName": "Project",
-      "commandLineArgs": "--format \"Type=(=results[0].remote_repo_host_type=), Link=(=results[0].remote_root_uri=)\" get-root --path C:\\Users\\markd\\Documents\\GitHub\\LinkWheel\\CoreAPI\\Cli\\HandleOutput.cs"
+      "commandLineArgs": "--format \"Type=(=results[0].remote_repo_host_type=), Link=(=results[0].remote_root_uri=)\" get-root --path LinkWheel\\CoreAPI\\Cli\\HandleOutput.cs",
+      "workingDirectory": "../../"
     }
   }
 }
