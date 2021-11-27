@@ -1,10 +1,11 @@
 ﻿using CoreAPI.Config;
+using CoreAPI.Utils;
 using Microsoft.Win32;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Linq;
 
 namespace CoreAPI.Icons
 {
@@ -41,31 +42,51 @@ namespace CoreAPI.Icons
             {
                 throw new NotImplementedException("Not implemented for this OS");
             }
-            return GetIconForFile(browserExePath);
+            return FetchIcon(browserExePath);
         });
 
-        public static IconResult GetIconForFile(string filepath)
+        public static IconResult FetchIcon(string userRequestString)
         {
-            string cachePath = Path.Combine(LinkWheelConfig.IconCachePath, $"{filepath}.png");
-            if (File.Exists(cachePath))
+            if (userRequestString.StartsWith("http"))
             {
-                return new(new Bitmap(cachePath), cachePath);
+                return AppleTouchIcons.GetFromUrl(new Uri(userRequestString));
             }
-
-            if (OperatingSystem.IsWindows())
+            string localFile = FileUtils.GetFullNormalizedPath(userRequestString);
+            if (File.Exists(localFile))
             {
-                return JumboIcons.GetJumboIcon(filepath);
+                string extension = Path.GetExtension(localFile).ToLower();
+
+                // The extensions here are limited by what is supported by Image.FromFile. See
+                // https://docs.microsoft.com/en-us/dotnet/api/system.drawing.image.fromfile
+                string[] supportedImageExtensions = new[] { ".bmp", ".gif", ".jpg", ".jpeg", ".png", ".tiff" };
+                if (supportedImageExtensions.Contains(extension))
+                {
+                    return new((Bitmap)Image.FromFile(localFile), localFile);
+                }
+
+                string[] cacheableExtensions = new[] { ".exe", ".dll" };
+                return JumboIcons.GetJumboIcon(
+                    localFile,
+                    shouldCache: cacheableExtensions.Contains(Path.GetExtension(localFile))
+                );
+            }
+            else if (FileUtils.TryGetExeOnPath(userRequestString, out string? exePath))
+            {
+                // Forgiveness: will be non-null if found.
+                return JumboIcons.GetJumboIcon(exePath!, shouldCache: true);
             }
             else
             {
-                throw new NotImplementedException("Not implemented for this OS");
+                throw new Exception(
+                    $"I don't know how to parse the icon for the string `{userRequestString}`. " +
+                    $"It's not a file or URL.");
             }
         }
 
         /// <summary>
         /// Returns the path to a website's icon, if it exists.
         /// </summary>
-        public static bool TryGetWebsiteIconPath(Uri url, out string localPath)
+        public static bool TryGetCachedWebsiteIconPath(Uri url, out string localPath)
         {
             string host = url.Host;
             localPath = Path.Combine(LinkWheelConfig.IconCachePath, $"{host}.png");

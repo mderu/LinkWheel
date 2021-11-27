@@ -55,9 +55,7 @@ namespace CoreAPI.RemoteHosts
 
             string localPath = Path.Combine(repoConfig.Root, string.Join('/', requestedParts.Skip(partIndex)));
 
-
-
-            Request request = new(remoteUri.ToString(), localPath);
+            Request request = new(remoteUri.ToString(), localPath, repoConfig);
             // Here we assume other fragments can exist, so we look for a fragment with only numbers.
             // AFAIK, Swarm can't link to a range of line numbers.
             var lineFragment = new Regex(@"(^|&)(?<lineNum>\d+)(&|$)").Match(remoteUri.Fragment);

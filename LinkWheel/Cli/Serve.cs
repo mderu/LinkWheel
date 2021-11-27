@@ -1,9 +1,9 @@
 ﻿using CommandLine;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CoreAPI.Config;
 using System.Linq;
 using CoreAPI.Cli;
+using CoreAPI.Models;
 
 namespace LinkWheel.Cli
 {
@@ -20,7 +20,7 @@ namespace LinkWheel.Cli
         [Value(0)]
         public IEnumerable<string> BrowserArgs { get; set; } = new List<string>();
 
-        public async Task<List<WheelElement>> ExecuteAsync()
+        public async Task<List<IdelAction>> ExecuteAsync()
         {
             // TODO: I have no idea why "serve" gets picked up here, but in get-actions the verb doesn't,
             // but I really don't have the time to deal with this right now. This is a hack to remove the
