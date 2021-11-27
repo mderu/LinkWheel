@@ -1,5 +1,6 @@
 ﻿using CoreAPI.Cli;
 using CoreAPI.Config;
+using CoreAPI.Models;
 using System;
 using System.Threading.Tasks;
 
@@ -22,7 +23,7 @@ namespace CoreAPI.RemoteHosts
         /// <param name="localFilePath">The localFilePath requested as `{localFilePath}#{lineNum}:~:text={text}`</param>
         /// <param name="repoConfig">The repo config for this file.</param>
         /// <returns></returns>
-        public abstract Task<(bool, string)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig);
+        public abstract Task<(bool, Request?)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig);
 
         /// <summary>
         /// Returns the link to the remote URL for the given file.

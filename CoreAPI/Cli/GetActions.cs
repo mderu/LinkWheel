@@ -10,6 +10,7 @@ using CoreAPI.RemoteHosts;
 using CoreAPI.Icons;
 using Newtonsoft.Json;
 using CoreAPI.OutputFormat;
+using CoreAPI.Models;
 
 namespace CoreAPI.Cli
 {
@@ -36,21 +37,24 @@ namespace CoreAPI.Cli
             if (File.Exists(LinkWheelConfig.TrackedReposFile))
             {
                 List<RepoConfig> repoConfigs = RepoConfigFile.Read();
-                
-                if (OperatingSystem.IsWindows())
+
+                if (RemoteRepoHosts.TryGetLocalPathFromUrl(new Uri(Url), repoConfigs, out Request? unforgivenRequest))
                 {
-                    if (RemoteRepoHosts.TryGetLocalPathFromUrl(new Uri(Url), repoConfigs, out string path))
+                    // Forgiveness: if the try passes, it isn't null.
+                    Request request = unforgivenRequest!;
+
+                    if (OperatingSystem.IsWindows())
                     {
                         // TODO: Read the .idelconfig file and populate these. Here's some okay defaults
                         // in the meantime.
 
-                        IconResult iconPath = IconUtils.GetIconForFile(path);
+                        IconResult iconPath = IconUtils.GetIconForFile(request.File);
 
                         elements.Add(new WheelElement()
                         {
                             Name = "Open in Editor",
-                            Description = $"Opens {path} in your default editor.",
-                            CommandAction = new string[] { path },
+                            Description = $"Opens {request.File} in your default editor.",
+                            CommandAction = new string[] { request.File },
                             IconPath = iconPath.Path,
                             IconLazy = new(() => iconPath.Icon),
                         });
@@ -59,19 +63,19 @@ namespace CoreAPI.Cli
                         elements.Add(new WheelElement()
                         {
                             Name = "Show in Explorer",
-                            Description = $"Shows {path} in your file explorer.",
+                            Description = $"Shows {request.File} in your file explorer.",
                             // The "/select" argument requires backslashes. That comma is intentional. See
                             //   https://stackoverflow.com/questions/13680415/how-to-open-explorer-with-a-specific-file-selected
                             //   https://ss64.com/nt/explorer.html
-                            CommandAction = new string[] { @"C:\Windows\explorer.exe", $"/select,\"{path.Replace("/", "\\")}\"" },
+                            CommandAction = new string[] { @"C:\Windows\explorer.exe", $"/select,\"{request.File.Replace("/", "\\")}\"" },
                             IconPath = dirIconPath.Path,
                             IconLazy = new(() => dirIconPath.Icon),
                         });
                     }
-                }
-                else
-                {
-                    throw new NotImplementedException("Cannot get actions for non-Windows systems yet.");
+                    else
+                    {
+                        throw new NotImplementedException("Cannot get actions for non-Windows systems yet.");
+                    }
                 }
             }
 

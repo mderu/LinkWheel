@@ -1,6 +1,8 @@
 ﻿using CoreAPI.Cli;
 using CoreAPI.Config;
+using CoreAPI.Models;
 using CoreAPI.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -45,13 +47,13 @@ namespace CoreAPI.RemoteHosts
                 .Select(pair => pair.remoteRepoHost);
         });
 
-        public static bool TryGetLocalPathFromUrl(Uri url, List<RepoConfig> repoCandidates, out string localPath)
+        public static bool TryGetLocalPathFromUrl(Uri url, List<RepoConfig> repoCandidates, out Request? request)
         {
             var tasks = repoCandidates.Select(
                 async (candidate) =>
                 {
                     if (candidate.RemoteRepoHostType != null 
-                        && TaskUtils.Try(await candidate.RemoteRepoHostType.TryGetLocalPath(url, candidate), out string resultingPath))
+                        && TaskUtils.Try(await candidate.RemoteRepoHostType.TryGetLocalPath(url, candidate), out Request? resultingPath))
                     {
                         return resultingPath;
                     }
@@ -60,17 +62,17 @@ namespace CoreAPI.RemoteHosts
             var results = Task.WhenAll(tasks).Result.RemoveNulls().ToList();
             if (results.Count == 1)
             {
-                localPath = results[0];
+                request = results[0];
                 return true;
             }
             if (results.Count > 1)
             {
-                //throw new Exception();
-                localPath = $"Multiple matches for {url}: {string.Join(", ", results[0])}";
-                return false;
+                // TO(MAYBE)DO: Seems a bit strange to throw an exception for this. We should probably output this to the
+                // console somehow in a parseable way.
+                throw new Exception($"Multiple matches for {url}: {string.Join(", ", JsonConvert.SerializeObject(results))}");
             }
 
-            localPath = "";
+            request = null;
             return false;
         }
 

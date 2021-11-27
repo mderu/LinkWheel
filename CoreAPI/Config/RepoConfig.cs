@@ -46,13 +46,13 @@ namespace CoreAPI.Config
         /// remote URL, we should use the RemoteHostType to handle any API calls we need to serve a local link to the
         /// file.
         /// </remarks>
-        [JsonProperty("remote_root_uri", Required = Required.DisallowNull)]
+        [JsonProperty("remoteRootUri", Required = Required.DisallowNull)]
         public string RemoteRootUrl { get; init; } = "";
 
         /// <summary>
         /// The class name of the remote repo host provider to use to translate the remote root url to a local file.
         /// </summary>
-        [JsonProperty("remote_repo_host_type", Required = Required.DisallowNull)]
+        [JsonProperty("remoteRepoHostType", Required = Required.DisallowNull)]
         public string RawRemoteRepoHostType { get; init; } = "";
 
         [JsonIgnore]
@@ -72,13 +72,13 @@ namespace CoreAPI.Config
                 if (remoteRepoHostType is null)
                 {
                     throw new System.InvalidOperationException(
-                        $"No known remote_repo_host_type of type {RawRemoteRepoHostType}");
+                        $"No known remoteRepoHostType of type {RawRemoteRepoHostType}");
                 }
                 return remoteRepoHostType;
             }
         }
 
-        [JsonProperty("remote_repo_host_keys")]
+        [JsonProperty("remoteRepoHostKeys")]
         public Dictionary<string, string> RemoteRepoHostKeys { get; set; } = new Dictionary<string, string>();
     }
 }

@@ -1,0 +1,75 @@
+// This file is loaded in using the Newtonsoft JSON Parser.
+// It supports the following:
+//
+//   * Line comments (e.g., // Comment)
+//   * Block comments (e.g., /* Comment */)
+//   * quoteless properties (e.g., {foo: "bar"})
+//   * Trailing commas (e.g., {"foo": "bar",})
+//   * Multiline strings (e.g., {"foo": "bar
+//                                       baz"})
+{
+	vscode: {
+		priority: -100,  // Have VSCode show up early in the actions list.
+		
+		// For bashCommand and batchCommand, you can use the same variable substitution syntax
+		// that exists for global parameters. The following objects are available:
+		//
+		//  * request:
+		//      url: string  // The URL being exercised
+		//      file: string  // The absolute path to the file specified in the URL
+		//      startLine: int | null  // The first line number linked to, if any is specified.
+		//                             // You can check if it is specified with
+		//                             //   (=$.request[?(@.startLine != null)]=)
+		//                             // And get the value if so with:
+		//                             //   (=$.request[?(@.startLine != null)].startLine=)
+		//      endLine: int | null  // The last line number linked to. See startLine.
+		//  * idelConfig: any  // The contents of the JSON object with the type that matches
+		//                     // the name of this object (in this case "vscode").
+		//  * idelCommand: this  // This object. Format strings do not recurse.
+		//  * repoConfig: RepoConfig  // The RepoConfig object that corresponds to the request
+		//                            // This includes things like the // root, remoteUrl, etc.
+		//                            // See https://github.com/mderu/LinkWheel/blob/master/CoreAPI/Config/RepoConfig.cs
+		//
+		// Note that if you can use relative paths to call a bash/batch script that resides in
+		// your workspace to simplify the work being done here (i.e., you can avoid having to
+		// escape all of your quotes, and pass format strings in through arguments instead).
+		bashCommand: "code \"(=idelConfig.workspacePath=)\" &
+		              sleep .1
+					  code (=request.file=)",
+		// Only batchCommand or bashCommand are required. If the operating system doesn't support
+		// that language, the command is omitted from the list of actions.
+		batchCommand: "start /B code \"(=idelConfig.workspacePath=)\" & 
+		               powershell sleep .1
+					   code \"(=request.file=):(=request.startLine=)\"",
+		
+		// A brief name of what is opened when this action is selected.
+		title: "VS Code",
+		
+		// A longer description of what action is taken.
+		description: "Opens (=request.file=) in VS Code"
+		
+		// A list of other commands that, when they appear, should prevent this command from
+		// showing up in the list of options. Useful for always filtering out options you
+		// know you'll never end up pressing because a better option exists (e.g., you can
+		// hide Visual Studio 2019 when a TypeScript file is being opened). This also still
+		// triggers when options don't have bashCommand or batchCommand, allowing you to write
+		// fnmatch rules to hide commands with specific file types (e.g., never show open 
+		// Visual Studio when the file is a JSON file).
+		hideOptionWhen: []
+		
+		// A new-line delimited list of fnmatch strings that accept files. At least one
+		// line must accept the file for the action to show up.
+		// Note that leading whitespace is trimmed.
+		//
+		// If fnmatch is unspecified, all files will automatically match.
+		fnmatch: "(=idelConfig.fnmatch=)",  // Defer the fnmatch strings to the idelconfig file.
+		
+        /// A string containing any of the following:
+        ///  * A path to an image
+        ///  * A path to an executable or dll, with an optional r',\d+' denoting which icon to use.
+        ///  * An https:// or http:// URI.
+        /// Otherwise, the icon will be null, and a default missing icon will be shown in LinkWheel.
+		iconSource: "(=request.file=)"
+		iconSourceSecondary: "%LocalAppData%\Programs\Microsoft VS Code\resources\app\resources\win32\code_150x150.png"
+	},
+}
