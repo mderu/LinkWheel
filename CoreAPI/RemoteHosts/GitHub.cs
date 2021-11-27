@@ -2,10 +2,12 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CliWrap;
 using CoreAPI.Cli;
 using CoreAPI.Config;
+using CoreAPI.Models;
 using CoreAPI.Utils;
 
 namespace CoreAPI.RemoteHosts
@@ -13,7 +15,7 @@ namespace CoreAPI.RemoteHosts
     [HostPriority(0)]
     class GitHub : RemoteRepoHost
     {
-        public override Task<(bool, string)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig)
+        public override Task<(bool, Request?)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig)
         {
             // TODO: Ideally we'll want to open a file to a specific line in the future (i.e., read the # or ? in the
             // remoteUri). We'll have to change the return type of this function to a more descriptive object.
@@ -24,14 +26,14 @@ namespace CoreAPI.RemoteHosts
             {
                 if (configuredParts[i] != requestedParts[i])
                 {
-                    return Task.FromResult((false, ""));
+                    return Task.FromResult<(bool, Request?)>((false, null));
                 }
             }
 
             // Verify that the URL kind of looks like a GitHub-hosted project URL.
             if (!(requestedParts[3] == "blob" || requestedParts[3] == "tree"))
             {
-                return Task.FromResult((false, ""));
+                return Task.FromResult<(bool, Request?)>((false, null));
             }
 
             // Magic number explanation:
@@ -41,10 +43,23 @@ namespace CoreAPI.RemoteHosts
             //   3) repo name
             //   4) blob or tree
             //   5) commit hash or branch name
-            return Task.FromResult((true,
-                Path.Combine(
+            string filePath = Path.Combine(
                     repoConfig.Root,
-                    string.Join("/", requestedParts.Skip(5)))));
+                    string.Join("/", requestedParts.Skip(5)));
+
+            Request request = new(remoteUri.ToString(), filePath);
+            var lineParts = new Regex(@"L(?<startLine>\d+)(-L(?<endLine>\d+))?").Match(remoteUri.Fragment);
+
+            if (lineParts.Groups.TryGetValue("startLine", out Group? startLine))
+            {
+                request.StartLine = int.Parse(startLine.Value);
+            }
+            if (lineParts.Groups.TryGetValue("endLine", out Group? endLine) && !string.IsNullOrWhiteSpace(endLine.Value))
+            {
+                request.EndLine = int.Parse(endLine.Value);
+            }
+
+            return Task.FromResult<(bool, Request?)>((true, request));
         }
 
         public override async Task<(bool, RepoConfig?)> TryGetRepoConfig(string pathInRepo)

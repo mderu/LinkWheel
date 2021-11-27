@@ -1,6 +1,7 @@
 ﻿using CliWrap;
 using CoreAPI.Cli;
 using CoreAPI.Config;
+using CoreAPI.Models;
 using CoreAPI.Utils;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace CoreAPI.RemoteHosts
     [HostPriority(0)]
     class Perforce : RemoteRepoHost
     {
-        public override async Task<(bool, string)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig)
+        public override async Task<(bool, Request?)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig)
         {
             string[] requestedParts = remoteUri.PathAndQuery.Split("#")[0].Split("?")[0].Split('/');
             string[] configuredParts = new Uri(repoConfig.RemoteRootUrl).PathAndQuery.Split('/');
@@ -25,13 +26,13 @@ namespace CoreAPI.RemoteHosts
             {
                 if (configuredParts[partIndex] != requestedParts[partIndex])
                 {
-                    return (false, "");
+                    return (false, null);
                 }
             }
 
             if (requestedParts[partIndex++] != "files")
             {
-                return (false, "");
+                return (false, null);
             }
 
             // Note that we don't cache the stream because it can be changed.
@@ -39,7 +40,7 @@ namespace CoreAPI.RemoteHosts
             // TODO: Find out what path is used if the repo doesn't use streams.
             if (stream is null)
             {
-                return (false, "");
+                return (false, null);
             }
             string[] streamParts = stream[2..].Split("/");
             
@@ -47,12 +48,26 @@ namespace CoreAPI.RemoteHosts
             {
                 if (requestedParts[partIndex] != streamParts[streamPartIndex])
                 {
-                    return (false, "");
+                    return (false, null);
                 }
                 partIndex++;
             }
 
-            return (true, Path.Combine(repoConfig.Root, string.Join('/', requestedParts.Skip(partIndex))));
+            string localPath = Path.Combine(repoConfig.Root, string.Join('/', requestedParts.Skip(partIndex)));
+
+
+
+            Request request = new(remoteUri.ToString(), localPath);
+            // Here we assume other fragments can exist, so we look for a fragment with only numbers.
+            // AFAIK, Swarm can't link to a range of line numbers.
+            var lineFragment = new Regex(@"(^|&)(?<lineNum>\d+)(&|$)").Match(remoteUri.Fragment);
+
+            if (lineFragment.Success)
+            {
+                request.StartLine = int.Parse(lineFragment.Groups["lineNum"].Value);
+            }
+
+            return (true, request);
         }
 
         public override async Task<(bool, RepoConfig?)> TryGetRepoConfig(string localRepoRoot)
