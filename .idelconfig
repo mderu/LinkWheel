@@ -1,2 +1,153 @@
+// This file is loaded in using the Newtonsoft JSON Parser.
+// It supports the following:
+//
+//   * Line comments (e.g., // Comment)
+//   * Block comments (e.g., /* Comment */)
+//   * quoteless properties (e.g., {foo: "bar"})
+//   * Trailing commas (e.g., {"foo": "bar",})
+//   * Multiline strings (e.g., {"foo": "bar
+//                                       baz"})
 {
+    definitions: {
+        vscode: {
+            priority: -100,  // Have VSCode show up early in the actions list.
+            
+            // For bashCommand and batchCommand, you can use the same variable substitution syntax
+            // that exists for global parameters. The following objects are available:
+            //
+            //  * request:
+            //      url: string  // The URL being exercised
+            //      file: string  // The absolute path to the file specified in the URL
+            //      startLine: int | null  // The first line number linked to, if any is specified.
+            //                             // You can check if it is specified with
+            //                             //   (=$.request[?(@.startLine != null)]=)
+            //                             // And get the value if so with:
+            //                             //   (=$.request[?(@.startLine != null)].startLine=)
+            //      endLine: int | null  // The last line number linked to. See startLine.
+            //      repoConfig: RepoConfig  // The RepoConfig object that corresponds to the request
+            //                              // This includes things like the // root, remoteUrl, etc.
+            //                              // See https://github.com/mderu/LinkWheel/blob/master/CoreAPI/Config/RepoConfig.cs
+            //  * action: any  // The contents of the `action` JSON object with the type that matches
+            //                 // the name of this object (in this case "vscode").
+            //  * name: string  // The name of the action, as specified in the `actions` object. See below
+            //  * definition: this  // This object. Format strings do not recurse.
+            //
+            // Note that if you can use relative paths to call a bash/batch script that resides in
+            // your workspace to simplify the work being done here (i.e., you can avoid having to
+            // escape all of your quotes, and pass format strings in through arguments instead).
+            bashCommand: "code \"(=action.workspacePath=)\" &
+                          sleep .1
+                          code (=request.file=)",
+            // Only batchCommand or bashCommand are required. If the operating system doesn't support
+            // that language, the command is omitted from the list of actions.
+            batchCommand: "start /B code \"(=action.workspacePath=)\"
+                           powershell sleep .2
+                           IF [(=request.startLine=)] == [] GOTO NoLineNum
+                           code \"(=request.file=)\"
+                           exit
+                           :NoLineNum
+                           code \"(=request.file=)\":(=request.startLine=)
+            ",
+            
+            // A brief name of what is opened when this action is selected.
+            title: "VS Code",
+            
+            // A longer description of what action is taken.
+            description: "Opens (=request.file=) in VS Code",
+            
+            // This one needs re-thinking so I'm skipping implementation for now.
+            //
+            // The goal of this is to remove options we'll never pick because there is a better option
+            // that surfaces for that file. May need to group similar commands all behind the same
+            // name and have the highest priority name show up on the wheel, or may just need tweaking
+            // to be less awkward.
+            //
+            // A comma-delimited string of other commands that, when they appear, should prevent this 
+            // command from showing up in the list of options. Useful for always filtering out options
+            // you know you'll never end up pressing because a better option exists (e.g., you can hide
+            // Visual Studio 2019 when a TypeScript file is being opened). This also still triggers
+            // when options don't have bashCommand or batchCommand, allowing you to write fnmatch rules
+            // to hide commands with specific file types (e.g., never show open Visual Studio when the
+            // file is a JSON file).
+            hideOptionWhen: "(=action.hideOptionWhen=)",
+            
+            // A new-line delimited list of fnmatch strings that accept files. At least one
+            // line must accept the file for the action to show up.
+            // Note that leading whitespace is trimmed.
+            //
+            // If fnmatch is unspecified, all files will automatically match.
+            fnmatch: "(=action.fnmatch=)",  // Defer the fnmatch strings to the idelconfig file.
+            
+            /// A string containing any of the following:
+            ///  * A path to an image
+            ///  * A path to an executable or dll, with an optional r',\d+' denoting which icon to use.
+            ///  * An https:// or http:// URI.
+            /// Otherwise, the icon will be null, and a default missing icon will be shown in LinkWheel.
+            iconSourceSecondary: "(=request.file=)",
+            iconSource: "%LocalAppData%/Programs/Microsoft VS Code/resources/app/resources/win32/code_150x150.png",
+        },
+        visualStudio: {
+            priority: -100,
+            batchCommand: "
+                IF [(=request.startLine=)] == [] GOTO NoLineNum
+                %CD%/.ideld/open_vs.vbs (=request.file=) 0 0
+                exit
+                :NoLineNum
+                %CD%/.ideld/open_vs.vbs (=request.file=) (=request.startLine=) 0
+            ",
+            title: "Visual Studio",
+            description: "Opens (=request.file=) in Visual Studio",
+            fnmatch: "(=action.fnmatch=)",  // Defer the fnmatch strings to the idelconfig file.
+            iconSource: "devenv.exe",
+            iconSourceSecondary: "(=request.file=)",
+        },
+        openInDefaultEditor: {
+            priority: -90,
+            batchCommand: "(=request.file=)",
+            title: "Open in Default Editor",
+            description: "Opens (=request.file=) in your default editor",
+            fnmatch: "**",  // Always match everything.
+            iconSource: "(=request.file=)"
+        },
+        showInExplorer: {
+            priority: 0,
+            batchCommand: "C:/Windows/explorer.exe /select,\"(=request.normalizedFile=)\"",
+            title: "Show In Explorer",
+            description: "Reveals (=request.file=) in the file explorer",
+            fnmatch: "**",  // Always match everything.
+            iconSource: "C:/Windows/explorer.exe"
+        },
+    },
+    actions: {
+        // A name to associate with this action, so user-defined actions can override.
+        // This name should be specific to the repo.
+        openInVsCode: {
+            // Required: The name of the definition to model the action after.
+            definition: "vscode",
+            
+            // Everything else is the wild west: can be anything and everything. Data here
+            // can be used in the definition.
+            fnmatch: "LinkWheel/Extensions/VSCode/**",
+            workspacePath: "./Extensions/VSCode/codelink/vscode-ext.code-workspace"
+        },
+        openInVisualStudio: {
+            // Required: The name of the definition to model the action after.
+            definition: "visualStudio",
+            
+            // Everything else is the wild west: can be anything and everything. Data here
+            // can be used in the definition.
+            fnmatch: "
+                **/*.cs
+                **/*.csproj
+                **/*.sln
+            ",
+            workspacePath: "./Extensions/VSCode/codelink/vscode-ext.code-workspace"
+        },
+        openInDefaultEditor: {
+            definition: "openInDefaultEditor",
+        },
+        showInExplorer: {
+            definition: "showInExplorer",
+        },
+    },
 }

@@ -2,7 +2,7 @@
   "profiles": {
     "LinkWheel": {
       "commandName": "Project",
-      "commandLineArgs": "serve --url https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs#L15 -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs#L15",
+      "commandLineArgs": "serve --url https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs#L15 -- \\\"C:\\\\Program Files (x86)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\\\" --single-argument https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs#L15",
       "remoteDebugEnabled": false,
       "remoteDebugMachine": "127.0.0.1"
     },
@@ -33,6 +33,10 @@
     "Valid URL No file": {
       "commandName": "Project",
       "commandLineArgs": "serve --url https://github.com/ -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument https://github.com/"
+    },
+    "LinkWheel VSCode": {
+      "commandName": "Project",
+      "commandLineArgs": "serve --url https://github.com/mderu/LinkWheel/blob/master/Extensions/VSCode/codelink/src/extension.ts#L15 -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument https://github.com/mderu/LinkWheel/blob/master/Extensions/VSCode/codelink/src/extension.ts#L15"
     }
   }
 }

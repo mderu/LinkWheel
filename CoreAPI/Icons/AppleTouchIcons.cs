@@ -24,9 +24,12 @@ namespace CoreAPI.Icons
             return new Bitmap(downloadedImage);
         }
 
+        /// <remarks>
+        /// Caches the icon after gathering it.
+        /// </remarks>
         public static IconResult GetFromUrl(Uri url, Bitmap? defaultIcon = null)
         {
-            if (IconUtils.TryGetWebsiteIconPath(url, out string localCachePath))
+            if (IconUtils.TryGetCachedWebsiteIconPath(url, out string localCachePath))
             {
                 return new((Bitmap)Image.FromFile(localCachePath), localCachePath);
             }

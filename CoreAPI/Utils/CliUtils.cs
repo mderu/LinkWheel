@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CoreAPI.Utils
 {
@@ -42,13 +44,66 @@ namespace CoreAPI.Utils
             }
         }
 
-        public static void SimpleInvoke(IEnumerable<string> args)
+        public static string JoinToCommandLine(IEnumerable<string> args)
         {
-            ProcessStartInfo startInfo = new(args.First(), string.Join(" ", args.Skip(1)))
+            StringBuilder result = new();
+            foreach(string arg in args)
             {
-                UseShellExecute = true,
-            };
-            Process.Start(startInfo);
+                if (arg.Contains(" "))
+                {
+                    result.Append('\"');
+                    result.Append(arg.Replace("\"", "\\\""));
+                    result.Append('\"');
+                }
+                else
+                {
+                    result.Append(arg);
+                }
+                result.Append(' ');
+            }
+            result.Remove(result.Length - 1, 1);
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Writes the script to a temp file and executes it.
+        /// Hopefully cleans it up afterwards.
+        /// </summary>
+        /// <param name="batchScriptContents"></param>
+        public static void SimpleInvoke(string batchScriptContents, string workingDirectory)
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                string tempFileName = Path.GetRandomFileName();
+                tempFileName += ".cmd";
+                File.WriteAllText(tempFileName, batchScriptContents);
+                Process process = new()
+                {
+                    EnableRaisingEvents = true,
+                    StartInfo = new ProcessStartInfo
+                    {
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        FileName = tempFileName,
+                        WorkingDirectory = workingDirectory,
+                    },
+                };
+                // Delete the temp file when done.
+                process.Exited += (object? _, EventArgs _) =>
+                {
+                    File.Delete(tempFileName);
+                };
+                process.Start();
+                // TODO: Don't block. This is here because the process won't run if we return immediately,
+                // because it will go out of scope.
+                process.WaitForExit();
+            }
+            else
+            {
+                // TODO: Can probably redirect stdin to bash instead of making a temp file.
+                // Can probably do this with Windows too come to think of it...
+                throw new NotImplementedException("Not implemented for Non-Windows yet.");
+            }
         }
     }
 }

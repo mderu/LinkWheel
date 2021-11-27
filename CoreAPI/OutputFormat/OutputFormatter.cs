@@ -27,12 +27,12 @@ namespace CoreAPI.OutputFormat
 
         public string? FormatOverride { get; set; }
 
-        public string GetOutput(OutputData outputObject)
+        public string GetOutput(OutputData outputObject, string? formatOverride = null)
         {
             int curIndex = 0;
             StringBuilder result = new();
 
-            string format = FormatOverride ?? outputObject.Format;
+            string format = formatOverride ?? FormatOverride ?? outputObject.Format;
 
             while (true)
             {

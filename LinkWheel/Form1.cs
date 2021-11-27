@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using CoreAPI.Config;
 using CoreAPI.Icons;
+using CoreAPI.Models;
 using CoreAPI.Utils;
 using LinkWheel.Properties;
 
@@ -25,13 +26,13 @@ namespace LinkWheel
 
         private Bitmap backgroundScreenshot;
         private Screen currentScreen;
-        public List<WheelElement> wheelElements = new();
+        public List<IdelAction> actions = new();
 
         private Point WheelCenterGlobal { get; set; }
 
-        public Form1(Point wheelCenterGlobal, List<WheelElement> wheelElements)
+        public Form1(Point wheelCenterGlobal, List<IdelAction> actions)
         {
-            this.wheelElements = wheelElements;
+            this.actions = actions;
             WheelCenterGlobal = wheelCenterGlobal;
             ShowInTaskbar = false;
             InitializeComponent();
@@ -59,16 +60,16 @@ namespace LinkWheel
             g.FillRectangle(new SolidBrush(Color.FromArgb((int)(192.0d * T), 0, 0, 0)), screenRect);
 
             int closestIndex = 0;
-            Point[] wheelCenters = new Point[wheelElements.Count];
+            Point[] wheelCenters = new Point[actions.Count];
             wheelCenters[0] = GetWheelIconCenter(0);
-            int[] sqDistances = new int[wheelElements.Count];
+            int[] sqDistances = new int[actions.Count];
             Point localCursorPosition = new(
                 Cursor.Position.X - Location.X,
                 Cursor.Position.Y - Location.Y
             );
 
             sqDistances[0] = wheelCenters[0].Subtract(localCursorPosition).GetSquareMagnitude();
-            for (int i = 1; i < wheelElements.Count; i++)
+            for (int i = 1; i < actions.Count; i++)
             {
                 wheelCenters[i] = GetWheelIconCenter(i);
                 sqDistances[i] = wheelCenters[i].Subtract(localCursorPosition).GetSquareMagnitude();
@@ -93,11 +94,11 @@ namespace LinkWheel
                 WheelRadius * 2 - WheelArcWidth
             );
 
-            float sweepAngle = 360.0f / wheelElements.Count;
-            for (int i = 0; i < wheelElements.Count; i++)
+            float sweepAngle = 360.0f / actions.Count;
+            for (int i = 0; i < actions.Count; i++)
             {
                 GraphicsPath gp = new();
-                float startAngle = (i - 0.5f) / wheelElements.Count * 360.0f;
+                float startAngle = (i - 0.5f) / actions.Count * 360.0f;
                 gp.AddArc(outerCircleBounds, startAngle, sweepAngle);
                 // Then, draw the inner arc in the reverse direction to allow convex fill.
                 gp.AddArc(innerCircleBounds, startAngle + sweepAngle, -sweepAngle);
@@ -118,9 +119,9 @@ namespace LinkWheel
                 }
                 g.FillPath(new SolidBrush(color), gp);
 
-                Bitmap icon = wheelElements[i].Icon ?? Resources.MissingIcon;
+                Bitmap icon = actions[i].Icon ?? Resources.MissingIcon;
 
-                if (wheelElements[i].IconSecondary is null)
+                if (actions[i].IconSecondary is null)
                 {
                     g.DrawImage(
                         icon,
@@ -132,7 +133,7 @@ namespace LinkWheel
                 else
                 {
                     g.DrawImage(
-                        IconUtils.Compose(IconUtils.RoundCorners(icon), wheelElements[i].IconSecondary),
+                        IconUtils.Compose(IconUtils.RoundCorners(icon), actions[i].IconSecondary),
                         (int)(wheelCenters[i].X - IconUtils.IconSize / 2.0f),
                         (int)(wheelCenters[i].Y - IconUtils.IconSize / 2.0f),
                         IconUtils.IconSize,
@@ -144,8 +145,8 @@ namespace LinkWheel
         private Point GetWheelIconCenter(int wheelElementIndex)
         {
             return new Point(
-                WheelCenter.X + (int)(MathF.Cos((float)wheelElementIndex / wheelElements.Count * MathF.PI * 2) * WheelRadius),
-                WheelCenter.Y + (int)(MathF.Sin((float)wheelElementIndex / wheelElements.Count * MathF.PI * 2) * WheelRadius));
+                WheelCenter.X + (int)(MathF.Cos((float)wheelElementIndex / actions.Count * MathF.PI * 2) * WheelRadius),
+                WheelCenter.Y + (int)(MathF.Sin((float)wheelElementIndex / actions.Count * MathF.PI * 2) * WheelRadius));
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -197,10 +198,10 @@ namespace LinkWheel
             }
             Point diff = WheelCenterGlobal.Subtract(Cursor.Position);
             float mouseAngle = (float)(Math.Atan2(diff.Y, diff.X) * 180.0 / Math.PI) + 180.0f;
-            float sweepAngle = 360.0f / wheelElements.Count;
-            for (int i = 0; i < wheelElements.Count; i++)
+            float sweepAngle = 360.0f / actions.Count;
+            for (int i = 0; i < actions.Count; i++)
             {
-                float startAngle = (i - 0.5f) / wheelElements.Count * 360.0f;
+                float startAngle = (i - 0.5f) / actions.Count * 360.0f;
                 if (MathUtils.IsBetweenAngles(mouseAngle, startAngle, startAngle + sweepAngle)
                     && (diff.GetSquareMagnitude() > DeadSelectionRadius * DeadSelectionRadius))
                 {
@@ -209,7 +210,7 @@ namespace LinkWheel
                     // starting up.
                     Hide();
 
-                    CliUtils.SimpleInvoke(wheelElements[i].CommandAction);
+                    CliUtils.SimpleInvoke(actions[i].Command, actions[i].CommandWorkingDirectory);
                     break;
                 }
             }

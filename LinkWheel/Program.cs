@@ -7,6 +7,7 @@ using CoreAPI.Config;
 using CoreAPI.Installers;
 using CoreAPI.Utils;
 using LinkWheel.Cli;
+using CoreAPI.Models;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
@@ -36,7 +37,7 @@ namespace LinkWheel
             Installer.EnsureInstalled();
 
             string[] args = Environment.GetCommandLineArgs()[1..];
-
+            
             if (args.Length == 0)
             {
                 // Running without a verb should start the system tray application.
@@ -46,11 +47,11 @@ namespace LinkWheel
             }
 
             var parser = new Parser(settings => settings.EnableDashDash = true);
-            List<WheelElement> actions = Task.Run(() => parser
+            List<IdelAction> actions = Task.Run(() => parser
                     .ParseArguments<Serve>(args)
                     .MapResult(
                         (Serve verb) => verb.ExecuteAsync(),
-                        errs => Task.FromResult(new List<WheelElement>())
+                        errs => Task.FromResult(new List<IdelAction>())
                     )).ConfigureAwait(false).GetAwaiter().GetResult();
 
             if (actions.Count == 0)
@@ -60,7 +61,7 @@ namespace LinkWheel
             else if (actions.Count == 1)
             {
                 // Don't open the option wheel if there's only one option.
-                CliUtils.SimpleInvoke(actions[0].CommandAction);
+                CliUtils.SimpleInvoke(actions[0].Command, actions[0].CommandWorkingDirectory);
             }
             else
             {

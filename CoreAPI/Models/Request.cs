@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CoreAPI.Config;
+using Newtonsoft.Json;
 using System;
 
 namespace CoreAPI.Models
@@ -8,17 +9,16 @@ namespace CoreAPI.Models
         [JsonProperty("url")]
         public string Url { get; set; }
 
-        [JsonIgnore]
-        private string filePath = "";
+        [JsonProperty("repoConfig")]
+        public RepoConfig RepoConfig { get; set; }
 
         [JsonProperty("file")]
-        public string File 
+        public string File { get; set; }
+
+        [JsonProperty("normalizedFile")]
+        public string NormalizedFile
         {
             get
-            {
-                return filePath;
-            }
-            set
             {
                 // If the operating system is Windows, we normalize the directory separators to be backslashes.
                 // This is done so that some ancient commands in Windows (e.g., C:\Windows\explorer.exe), can
@@ -28,15 +28,26 @@ namespace CoreAPI.Models
                 // e.g., fileNormalized.
                 if (OperatingSystem.IsWindows())
                 {
-                    filePath = value.Replace("/", "\\");
+                    return File.Replace("/", "\\");
                 }
                 else
                 {
-                    filePath = value;
+                    return File;
                 }
             }
         }
-        
+        [JsonProperty("relativePath")]
+        public string RelativePath
+        {
+            get
+            {
+                Uri parentUri = new(Environment.CurrentDirectory, UriKind.Absolute);
+                Uri childUri = new(File, UriKind.Absolute);
+
+                return parentUri.MakeRelativeUri(childUri).ToString();
+            }
+        }
+
         [JsonProperty("startLine")]
         public int? StartLine { get; set; }
 
@@ -46,10 +57,11 @@ namespace CoreAPI.Models
         // Stretch goal:
         // public string? HighlightedSnippet { get; set; }
 
-        public Request(string url, string file)
+        public Request(string url, string file, RepoConfig repoConfig)
         {
             Url = url;
             File = file;
+            RepoConfig = repoConfig;
         }
     }
 }

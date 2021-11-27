@@ -17,8 +17,6 @@ namespace CoreAPI.RemoteHosts
     {
         public override Task<(bool, Request?)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig)
         {
-            // TODO: Ideally we'll want to open a file to a specific line in the future (i.e., read the # or ? in the
-            // remoteUri). We'll have to change the return type of this function to a more descriptive object.
             string[] requestedParts = remoteUri.PathAndQuery.Split("?")[0].Split("#")[0].Split("/");
             string[] configuredParts = new Uri(repoConfig.RemoteRootUrl).PathAndQuery.Split("/");
 
@@ -47,7 +45,7 @@ namespace CoreAPI.RemoteHosts
                     repoConfig.Root,
                     string.Join("/", requestedParts.Skip(5)));
 
-            Request request = new(remoteUri.ToString(), filePath);
+            Request request = new(remoteUri.ToString(), filePath, repoConfig);
             var lineParts = new Regex(@"L(?<startLine>\d+)(-L(?<endLine>\d+))?").Match(remoteUri.Fragment);
 
             if (lineParts.Groups.TryGetValue("startLine", out Group? startLine))
@@ -67,7 +65,6 @@ namespace CoreAPI.RemoteHosts
             // TODO: The logic here will match pretty much any Git repo. We need to see if there's a way
             // we can differentiate GitHub from other git hosting solutions.
 
-            // TODO: asyncify stuff.
             if (!await IsGitInstalled())
             {
                 return (false, null);
@@ -95,8 +92,6 @@ namespace CoreAPI.RemoteHosts
 
         public override async Task<Uri> GetRemoteLink(GetUrl request, RepoConfig repoConfig)
         {
-            // TODO: Change first argument to an object that can specify more data
-            // (linked line, text, branch, etc).
             string fullPath = request.File;
             string relativePath = Path.GetRelativePath(repoConfig.Root, fullPath);
 

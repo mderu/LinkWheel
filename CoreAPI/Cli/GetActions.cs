@@ -11,6 +11,9 @@ using CoreAPI.Icons;
 using Newtonsoft.Json;
 using CoreAPI.OutputFormat;
 using CoreAPI.Models;
+using Newtonsoft.Json.Linq;
+using CoreAPI.Utils;
+using Microsoft.Extensions.FileSystemGlobbing;
 
 namespace CoreAPI.Cli
 {
@@ -25,14 +28,14 @@ namespace CoreAPI.Cli
 
         public async Task<OutputData> ExecuteAsync()
         {
-            List<WheelElement> elements = await Get();
+            List<IdelAction> actions = await Get();
 
-            return new OutputData(0, new() { ["actions"] = elements }, "(=actions=)");
+            return new OutputData(0, new() { ["actions"] = actions }, "(=actions=)");
         }
 
-        public async Task<List<WheelElement>> Get()
+        public async Task<List<IdelAction>> Get()
         {
-            List<WheelElement> elements = new();
+            List<IdelAction> completedActions = new();
 
             if (File.Exists(LinkWheelConfig.TrackedReposFile))
             {
@@ -43,89 +46,172 @@ namespace CoreAPI.Cli
                     // Forgiveness: if the try passes, it isn't null.
                     Request request = unforgivenRequest!;
 
-                    if (OperatingSystem.IsWindows())
+                    string idelConfigPath = Path.Combine(request.RepoConfig.Root, ".idelconfig");
+                    Dictionary<string, IdelActionDefinition> actionDefinitions = new();
+                    Dictionary<string, JObject> actions = new();
+
+                    // TODO: Repeat this for user-only idelconfigs (one in HOME and the other in as `./.user.idelconfig`.
+                    string prevCwd = Directory.GetCurrentDirectory();
+                    Directory.SetCurrentDirectory(request.RepoConfig.Root);
+                    if (File.Exists(idelConfigPath))
                     {
-                        // TODO: Read the .idelconfig file and populate these. Here's some okay defaults
-                        // in the meantime.
-
-                        IconResult iconPath = IconUtils.GetIconForFile(request.File);
-
-                        elements.Add(new WheelElement()
+                        IdelConfig? repoIdelConfig = JsonConvert.DeserializeObject<IdelConfig>(await File.ReadAllTextAsync(idelConfigPath));
+                        if (repoIdelConfig?.Definitions is not null)
                         {
-                            Name = "Open in Editor",
-                            Description = $"Opens {request.File} in your default editor.",
-                            CommandAction = new string[] { request.File },
-                            IconPath = iconPath.Path,
-                            IconLazy = new(() => iconPath.Icon),
-                        });
-
-                        IconResult dirIconPath = IconUtils.GetIconForFile(@"C:\Windows\explorer.exe");
-                        elements.Add(new WheelElement()
+                            actionDefinitions.Update(repoIdelConfig.Definitions);
+                        }
+                        if (repoIdelConfig?.Actions is not null)
                         {
-                            Name = "Show in Explorer",
-                            Description = $"Shows {request.File} in your file explorer.",
-                            // The "/select" argument requires backslashes. That comma is intentional. See
-                            //   https://stackoverflow.com/questions/13680415/how-to-open-explorer-with-a-specific-file-selected
-                            //   https://ss64.com/nt/explorer.html
-                            CommandAction = new string[] { @"C:\Windows\explorer.exe", $"/select,\"{request.File.Replace("/", "\\")}\"" },
-                            IconPath = dirIconPath.Path,
-                            IconLazy = new(() => dirIconPath.Icon),
+                            foreach (var nameActionPair in repoIdelConfig.Actions)
+                            {
+                                if (!nameActionPair.Value.ContainsKey("definition"))
+                                {
+                                    throw new Exception($"Action {nameActionPair.Key} does not contain the key " +
+                                        $"`definition`. This value must be a string that matches a name in the " +
+                                        $"`definitions` object.");
+                                }
+                                if (nameActionPair.Value["definition"] is null 
+                                    || nameActionPair.Value["definition"]?.Type != JTokenType.String)
+                                {
+                                    throw new Exception($"Action {nameActionPair.Key} must be a string that matches " +
+                                        $"a name in the `definitions` object.");
+                                }
+                                // Forgiveness: the above if statement guarantees this string isn't null.
+                                if (!actionDefinitions.ContainsKey((string)nameActionPair.Value["definition"]!))
+                                {
+                                    throw new Exception($"Action {nameActionPair.Key} must match a name in the " +
+                                        $"`definitions` object.");
+                                }
+                            }
+                            actions.Update(repoIdelConfig.Actions);
+                        }
+                    }
+
+                    foreach(var nameActionPair in actions)
+                    {
+                        // Forgiveness: we guaranteed this exists above.
+                        IdelActionDefinition definition = actionDefinitions[(string)nameActionPair.Value["definition"]!];
+                        Dictionary<string, object> formatInfo = new ()
+                        {
+                            ["request"] = request,
+                            ["action"] = nameActionPair.Value,
+                            ["name"] = nameActionPair.Key,
+                            ["definition"] = definition,
+                        };
+
+                        // Hacking the output formatter to format these values for us.
+                        // Here, we get FnMatches.
+                        OutputFormatter formatter = new();
+                        OutputData data = new(0, formatInfo);
+                        string[] fnMatches = formatter.GetOutput(data, definition.FnMatches).Trim().Split(
+                            new string[] { "\r\n", "\r", "\n" },
+                            StringSplitOptions.None
+                        );
+                        Matcher matcher = new();
+                        foreach (string fnmatch in fnMatches)
+                        {
+                            matcher.AddInclude(fnmatch.TrimStart());
+                        }
+                        if (!matcher.Match(request.RelativePath).HasMatches)
+                        {
+                            continue;
+                        }
+
+                        int priority = definition.Priority;
+                        string command;
+                        if (OperatingSystem.IsWindows() && definition.BatchCommand != null)
+                        {
+                            command = formatter.GetOutput(data, definition.BatchCommand);
+                        }
+                        else if (definition.BashCommand != null)
+                        {
+                            command = formatter.GetOutput(data, definition.BatchCommand);
+                        }
+                        else
+                        {
+                            throw new ArgumentException(
+                                $"Either `batchCommand` or `batchCommand` must be " +
+                                $"specified for action {nameActionPair.Key}.");
+                        }
+                        string title = formatter.GetOutput(data, definition.Title);
+                        string description = formatter.GetOutput(data, definition.Description);
+                        IconResult icon = new(null, "");
+                        IconResult iconSecondary = new(null, "");
+                        if (definition.Icon is not null)
+                        {
+                            icon = IconUtils.FetchIcon(formatter.GetOutput(data, definition.Icon));
+                        }
+                        if (definition.IconSecondary is not null)
+                        {
+                            iconSecondary = IconUtils.FetchIcon(formatter.GetOutput(data, definition.IconSecondary));
+                        }
+                        completedActions.Add(new IdelAction(
+                            priority: priority,
+                            command: command,
+                            title: title,
+                            description: description,
+                            iconSource: icon.Path,
+                            iconSecondarySource: iconSecondary.Path
+                        )
+                        {
+                            Icon = icon.Icon,
+                            IconSecondary = iconSecondary.Icon,
+                            CommandWorkingDirectory = request.RepoConfig.Root,
                         });
                     }
-                    else
-                    {
-                        throw new NotImplementedException("Cannot get actions for non-Windows systems yet.");
-                    }
+                    Directory.SetCurrentDirectory(prevCwd);
                 }
             }
 
             IconResult browserIcon = IconUtils.DefaultBrowserIcon;
 
-            if (elements.Count == 0)
+            // Special case pass-through websites: don't bother trying to grab icons if they are unrelated to your repos.
+            // We do this so we don't make all non-repo links slower to open (e.g., YouTube, Drive, Facebook, Amazon, etc).
+            // The case where this is particularly bad is where the website linked to is slow or dead, and it eventually
+            // gives up on finding an icon.
+            if (completedActions.Count == 0)
             {
-                if (IconUtils.TryGetWebsiteIconPath(new Uri(Url), out string? localCachePath))
+                if (IconUtils.TryGetCachedWebsiteIconPath(new Uri(Url), out string? localCachePath))
                 {
-                    elements.Add(new WheelElement()
-                    {
-                        Name = "Open in Browser",
-                        Description = $"Opens {Url} in your default browser.",
-                        CommandAction = BrowserArgs,
-                        IconPath = localCachePath,
-                        IconLazy = new(() => new((Bitmap)Image.FromFile(localCachePath))),
-                        IconPathSecondary = browserIcon.Path,
-                        IconSecondaryLazy = new(() => browserIcon.Icon),
-                    });
+                    completedActions.Add(new IdelAction(
+                        priority: -100,
+                        command: CliUtils.JoinToCommandLine(BrowserArgs),
+                        title: "Open in Browser",
+                        description: $"Opens {Url} in your default browser.",
+                        iconSource: localCachePath,
+                        iconSecondarySource: browserIcon.Path
+                    ));
                 }
                 else
                 {
-                    elements.Add(new WheelElement()
-                    {
-                        Name = "Open in Browser",
-                        Description = $"Opens {Url} in your default browser.",
-                        CommandAction = BrowserArgs,
-                        IconPath = "",
-                        IconLazy = new(() => null),
-                        IconPathSecondary = browserIcon.Path,
-                        IconSecondaryLazy = new(() => browserIcon.Icon),
-                    });
+                    completedActions.Add(new IdelAction(
+                        priority: -100,
+                        command: CliUtils.JoinToCommandLine(BrowserArgs),
+                        title: "Open in Browser",
+                        description: $"Opens {Url} in your default browser.",
+                        iconSource: "",
+                        iconSecondarySource: browserIcon.Path
+                    ));
                 }
             }
             else
             {
                 IconResult urlIcon = IconUtils.GetIconForUrl(Url);
-                elements.Add(new WheelElement()
+                completedActions.Add(new IdelAction(
+                    priority: -100,
+                    command: CliUtils.JoinToCommandLine(BrowserArgs),
+                    title: "Open in Browser",
+                    description: $"Opens {Url} in your default browser.",
+                    iconSource: urlIcon.Path,
+                    iconSecondarySource: browserIcon.Path
+                )
                 {
-                    Name = "Open in Browser",
-                    Description = $"Opens {Url} in your default browser.",
-                    CommandAction = BrowserArgs,
-                    IconPath = urlIcon.Path,
-                    IconLazy = new(() => urlIcon.Icon),
-                    IconPathSecondary = browserIcon.Path,
-                    IconSecondaryLazy = new(() => browserIcon.Icon),
+                    Icon = urlIcon.Icon,
+                    IconSecondary = browserIcon.Icon,
                 });
             }
 
-            return elements;
+            return completedActions;
         }
 
         private static bool IsEnabled()

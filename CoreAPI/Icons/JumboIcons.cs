@@ -9,17 +9,26 @@ namespace CoreAPI.Icons
     class JumboIcons
     {
         //http://stackoverflow.com/a/28530403/1572750
-        public static IconResult GetJumboIcon(string path)
+        public static IconResult GetJumboIcon(string path, bool shouldCache = true)
         {
             IntPtr hIcon = GetJumboIcon(GetIconIndex(path));
-            string outPath = Path.Combine(LinkWheelConfig.IconCachePath, $"{Path.GetFileName(path)}.png");
+
+            string outPath = path;
+            if (shouldCache)
+            {
+                outPath = Path.Combine(LinkWheelConfig.IconCachePath, $"{Path.GetFileName(path)}.png");
+            }
+            
             Bitmap ret;
             // from native to managed
             using (Icon ico = (Icon)Icon.FromHandle(hIcon).Clone())
             {
                 // save to file (or show in a picture box)
                 ret = ico.ToBitmap();
-                ret.Save(outPath);
+                if (shouldCache)
+                {
+                    ret.Save(outPath);
+                }
             }
             Shell32.DestroyIcon(hIcon); // don't forget to cleanup
             return new(ret, outPath);
