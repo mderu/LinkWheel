@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="LinkWheelVSIX.f3989fa1-d90e-4d10-9c49-24c2fbfcbcba" Version="1.0" Language="en-US" Publisher="Mark De Ruyter" />
-    <DisplayName>LinkWheelVSIX</DisplayName>
-    <Description>Empty VSIX Project.</Description>
+    <Identity Id="LinkWheelVS.f3989fa1-d90e-4d10-9c49-24c2fbfcbcba" Version="1.0" Language="en-US" Publisher="Mark De Ruyter" />
+    <DisplayName>LinkWheelVS</DisplayName>
+    <Description>LinkWheel VSIX Project.</Description>
+    <License>LICENSE.txt</License>
+    <ReleaseNotes>README.txt</ReleaseNotes>
+    <Icon>linkWheelIcon.ico</Icon>
+    <Tags>Links, Productivity</Tags>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0, 17.0)" />

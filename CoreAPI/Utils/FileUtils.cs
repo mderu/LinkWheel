@@ -185,6 +185,9 @@ namespace CoreAPI.Utils
                 StringBuilder sb = new(exeName, MAX_PATH);
                 fullPath = PathFindOnPath(sb, null) ? sb.ToString() : null;
 
+                // Try to do what Win + R does:
+                // https://superuser.com/questions/87372/how-does-the-windows-run-dialog-locate-executables
+                //
                 // Forgiveness: if this doesn't exist the user probably has bigger problems.
                 RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths")!;
                 string[] keyNames = regKey.GetSubKeyNames();
@@ -194,6 +197,7 @@ namespace CoreAPI.Utils
                 {
                     // Forgiveness: We know the subkey exists, and we gave it a default, so it must return something.
                     fullPath = (string)regKey.OpenSubKey(keyName)!.GetValue("", "")!;
+                    fullPath = fullPath.Trim('\"');
                     return true;
                 }                
                 return fullPath != null;

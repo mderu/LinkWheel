@@ -3,6 +3,10 @@
 	"displayName": "CodeLink",
 	"description": "",
 	"version": "0.0.1",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/mderu/LinkWheel/"
+	},
 	"engines": {
 		"vscode": "^1.61.0"
 	},

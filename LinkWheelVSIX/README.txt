@@ -1,4 +1,4 @@
-# codelink README
+# LinkWheelVS
 
 This extension registers repos for LinkWheel to serve a list of possible
 actions, as well as provides a quick shortcut for linking to repo hosting
@@ -19,4 +19,4 @@ which it expects to be on the system PATH.
 
 ### 1.0.0
 
-Initial release of codelink
+Initial release of LinkWheelVS
