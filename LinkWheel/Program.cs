@@ -8,9 +8,6 @@ using CoreAPI.Installers;
 using CoreAPI.Utils;
 using LinkWheel.Cli;
 using CoreAPI.Models;
-using CoreAPI.OutputFormat;
-using CoreAPI.Cli;
-using System.Linq;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
@@ -68,7 +65,6 @@ namespace LinkWheel
             }
             else
             {
-                Application.EnableVisualStyles();
                 Application.SetHighDpiMode(HighDpiMode.SystemAware);
                 Application.Run(new Form1(cursorPosition, actions));
             }
