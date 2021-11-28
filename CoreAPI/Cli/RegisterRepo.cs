@@ -29,6 +29,7 @@ namespace CoreAPI.Cli
             {
                 Register(results[0]);
             }
+            result.Format = "(=$=)";
             return result;
         }
 
