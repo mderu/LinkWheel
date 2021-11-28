@@ -74,7 +74,7 @@ namespace CoreAPI.Utils
         {
             if (OperatingSystem.IsWindows())
             {
-                string tempFileName = Path.GetRandomFileName();
+                string tempFileName = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 tempFileName += ".cmd";
                 File.WriteAllText(tempFileName, batchScriptContents);
                 Process process = new()
