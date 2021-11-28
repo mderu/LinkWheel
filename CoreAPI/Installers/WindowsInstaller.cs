@@ -135,8 +135,7 @@ namespace CoreAPI.Installers
                 ProcessStartInfo startInfo = new(commandline[0], string.Join(" ", commandline[1..]))
                 {
                     Verb = "runas",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
+                    UseShellExecute = true,
                 };
                 Process.Start(startInfo)?.WaitForExit();
                 isElevatedProcess = false;
