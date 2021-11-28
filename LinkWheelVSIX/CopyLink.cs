@@ -9,7 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using Task = System.Threading.Tasks.Task;
 
-namespace LinkWheelVSIX
+namespace LinkWheelVS
 {
     /// <summary>
     /// Command handler

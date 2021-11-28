@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
-namespace LinkWheelVSIX
+namespace LinkWheelVS
 {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
@@ -24,12 +24,12 @@ namespace LinkWheelVSIX
     /// </para>
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [Guid(LinkWheelVSIXPackage.PackageGuidString)]
+    [Guid(LinkWheelVSPackage.PackageGuidString)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    public sealed class LinkWheelVSIXPackage : AsyncPackage
+    public sealed class LinkWheelVSPackage : AsyncPackage
     {
         /// <summary>
-        /// LinkWheelVSIXPackage GUID string.
+        /// LinkWheelVSPackage GUID string.
         /// </summary>
         public const string PackageGuidString = "339e4ba6-de34-4690-83ea-db3147b388e0";
 

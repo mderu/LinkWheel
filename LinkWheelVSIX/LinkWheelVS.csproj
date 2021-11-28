@@ -47,7 +47,7 @@
   <ItemGroup>
     <Compile Include="CopyLink.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="LinkWheelVSIXPackage.cs" />
+    <Compile Include="LinkWheelVSPackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -71,11 +71,23 @@
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.11.15" />
   </ItemGroup>
   <ItemGroup>
-    <VSCTCompile Include="LinkWheelVSIXPackage.vsct">
+    <VSCTCompile Include="LinkWheelVSPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="LICENSE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="linkWheelIcon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="README.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\CopyLink.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -22,7 +22,7 @@
 
   <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
-  <Commands package="guidLinkWheelVSIXPackage">
+  <Commands package="guidLinkWheelVSPackage">
     <!-- Inside this section we have different sub-sections: one for the menus, another
     for the menu groups, one for the buttons (the actual commands), one for the combos
     and the last one for the bitmaps used. Each element is identified by a command id that
@@ -36,7 +36,7 @@
          group as the part of a menu contained between two lines. The parent of a group
          must be a menu. -->
     <Groups>
-      <Group guid="guidLinkWheelVSIXPackageCmdSet" id="MyMenuGroup" priority="0x0600">
+      <Group guid="guidLinkWheelVSPackageCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
       </Group>
     </Groups>
@@ -52,8 +52,8 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidLinkWheelVSIXPackageCmdSet" id="CopyLinkId" priority="0x0100" type="Button">
-        <Parent guid="guidLinkWheelVSIXPackageCmdSet" id="MyMenuGroup" />
+      <Button guid="guidLinkWheelVSPackageCmdSet" id="CopyLinkId" priority="0x0100" type="Button">
+        <Parent guid="guidLinkWheelVSPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Copy Link To Clipboard</ButtonText>
@@ -73,7 +73,7 @@
   </Commands>
 
   <KeyBindings>
-    <KeyBinding guid="guidLinkWheelVSIXPackageCmdSet" id="CopyLinkId"
+    <KeyBinding guid="guidLinkWheelVSPackageCmdSet" id="CopyLinkId"
      editor="guidVSStd97"
      key1="K" mod1="Control"
      key2="O" mod2="Control">
@@ -82,10 +82,10 @@
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidLinkWheelVSIXPackage" value="{339e4ba6-de34-4690-83ea-db3147b388e0}" />
+    <GuidSymbol name="guidLinkWheelVSPackage" value="{339e4ba6-de34-4690-83ea-db3147b388e0}" />
 
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidLinkWheelVSIXPackageCmdSet" value="{802e3c2c-27d8-4ba4-a9a7-26c81e1ac18f}">
+    <GuidSymbol name="guidLinkWheelVSPackageCmdSet" value="{802e3c2c-27d8-4ba4-a9a7-26c81e1ac18f}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="CopyLinkId" value="0x0100" />
     </GuidSymbol>

@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinkWheelCli", "LinkWheelCl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreAPI", "CoreAPI\CoreAPI.csproj", "{54273A1F-D414-4CEC-8714-470F8649D57B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkWheelVSIX", "LinkWheelVSIX\LinkWheelVSIX.csproj", "{D4483EFA-000A-48FF-BDB9-18E8D4F3986D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkWheelVS", "LinkWheelVSIX\LinkWheelVS.csproj", "{D4483EFA-000A-48FF-BDB9-18E8D4F3986D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
