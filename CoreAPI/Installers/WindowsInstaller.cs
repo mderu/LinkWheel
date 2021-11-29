@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security;
 
 // It seems the operating system check in the constructor does not suffice for disabling this warning.
@@ -43,7 +44,34 @@ namespace CoreAPI.Installers
             {
                 InterceptBrowserShellCommands();
                 WriteRegistryClassKey();
+                CopyToInstallDirectory();
                 UpdateSystemPath();
+            }
+        }
+
+        public void CopyToInstallDirectory()
+        {
+            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
+            if (FileUtils.ArePathsEqual(currentPath, LinkWheelConfig.InstallDirectory))
+            {
+                // No need to copy, it's already been installed.
+                return;
+            }
+            // TODO: stop hardcoding these executable names.
+            foreach (string exeName in new string[] { "linkWheel.exe", "linkWheelCli.exe" })
+            {
+                try
+                {
+                    File.Copy(
+                        Path.Combine(currentPath, exeName),
+                        Path.Combine(LinkWheelConfig.InstallDirectory, exeName),
+                        overwrite: true
+                    );
+                }
+                catch (Exception)
+                {
+                    throw new Exception($"Please close any other running {exeName} before continuing to re-install.");
+                }
             }
         }
 
@@ -79,9 +107,7 @@ namespace CoreAPI.Installers
 
             string oldPath = (string?)envKey.GetValue("Path", "") ?? "";
 
-            // Forgiveness: We know that Environment.GetCommandLineArgs()[0] cannot be a drive letter
-            // (since this executable is a file), and therefore DirectoryName can never be null.
-            string dirName = new FileInfo(Environment.GetCommandLineArgs()[0]).DirectoryName!;
+            string dirName = LinkWheelConfig.InstallDirectory;
             HashSet<string> paths = new(oldPath.Split(";"));
             // Returns true if it is new. If it's new, then append to the end. Otherwsie, let it go.
             // We do this so the HashSet doesn't re-order the path directories every time this runs.
@@ -104,9 +130,7 @@ namespace CoreAPI.Installers
                 throw new Exception($"Registry key {systemPathRegistryKey} does not exist.");
             }
             string oldPath = (string?)envKey.GetValue("Path", "") ?? "";
-            // Forgiveness: We know that Environment.GetCommandLineArgs()[0] cannot be a drive letter
-            // (since this executable is a file), and therefore DirectoryName can never be null.
-            string dirName = new FileInfo(Environment.GetCommandLineArgs()[0]).DirectoryName!;
+            string dirName = LinkWheelConfig.InstallDirectory;
             envKey.SetValue("Path", oldPath.Replace($";{dirName}", ""));
             PSendNotifyMessage.SendEnvironmentUpdated();
         }
