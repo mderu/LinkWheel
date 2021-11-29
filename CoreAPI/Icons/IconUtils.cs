@@ -70,7 +70,7 @@ namespace CoreAPI.Icons
                     shouldCache: cacheableExtensions.Contains(Path.GetExtension(localFile))
                 );
             }
-            else if (FileUtils.TryGetExeOnPath(userRequestString, out string? exePath))
+            else if (FileUtils.TryGetInstalledExe(userRequestString, out string? exePath))
             {
                 // Forgiveness: will be non-null if found.
                 return JumboIcons.GetJumboIcon(exePath!, shouldCache: true);

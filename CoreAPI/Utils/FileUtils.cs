@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -168,11 +169,10 @@ namespace CoreAPI.Utils
 
         /// <summary>
         /// Gets the full path of the given executable filename as if the user had entered this
-        /// executable in a shell. So, for example, the Windows PATH environment variable will
-        /// be examined. If the filename can't be found by Windows, null is returned.</summary>
+        /// executable in a shell (or for Windows, from Win + R).
+        /// </summary>
         /// <param name="exeName"></param>
-        /// <returns>The full path if successful, or null otherwise.</returns>
-        public static bool TryGetExeOnPath(string exeName, out string? fullPath)
+        public static bool TryGetInstalledExe(string exeName, [NotNullWhen(true)] out string? fullPath)
         {
             if (OperatingSystem.IsWindows())
             {
@@ -187,12 +187,14 @@ namespace CoreAPI.Utils
 
                 // Try to do what Win + R does:
                 // https://superuser.com/questions/87372/how-does-the-windows-run-dialog-locate-executables
-                //
+                string appPathsKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
                 // Forgiveness: if this doesn't exist the user probably has bigger problems.
-                RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths")!;
+                RegistryKey regKey = Registry.LocalMachine.OpenSubKey(appPathsKey)!;
                 string[] keyNames = regKey.GetSubKeyNames();
                 string exeNameWithoutExtension = Path.GetFileNameWithoutExtension(exeName);
-                string? keyName = keyNames.Where(key => Path.GetFileNameWithoutExtension(key) == exeNameWithoutExtension).FirstOrDefault();
+                string? keyName = keyNames
+                    .Where(key => Path.GetFileNameWithoutExtension(key) == exeNameWithoutExtension)
+                    .FirstOrDefault();
                 if (keyName is not null)
                 {
                     // Forgiveness: We know the subkey exists, and we gave it a default, so it must return something.
