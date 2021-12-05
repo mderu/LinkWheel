@@ -54,21 +54,10 @@ namespace LinkWheel
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.debugLabel = new System.Windows.Forms.Label();
             this.Timer1 = new System.Windows.Forms.Timer(this.components);
+            this.titleLabel = new System.Windows.Forms.Label();
+            this.descriptionLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
-            // 
-            // debugLabel
-            // 
-            this.debugLabel.AutoSize = true;
-            this.debugLabel.BackColor = System.Drawing.Color.DarkGray;
-            this.debugLabel.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.debugLabel.Location = new System.Drawing.Point(36, 25);
-            this.debugLabel.Margin = new System.Windows.Forms.Padding(0);
-            this.debugLabel.Name = "debugLabel";
-            this.debugLabel.Size = new System.Drawing.Size(179, 13);
-            this.debugLabel.TabIndex = 0;
-            this.debugLabel.Text = "Set debugLabel.Text to write here";
             // 
             // Timer1
             // 
@@ -76,13 +65,38 @@ namespace LinkWheel
             this.Timer1.Interval = 16;
             this.Timer1.Tick += new System.EventHandler(this.Timer1_Tick);
             // 
+            // titleLabel
+            // 
+            this.titleLabel.BackColor = System.Drawing.Color.Transparent;
+            this.titleLabel.Font = new System.Drawing.Font("Segoe UI", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.titleLabel.ForeColor = System.Drawing.Color.White;
+            this.titleLabel.Location = new System.Drawing.Point(12, 9);
+            this.titleLabel.Name = "titleLabel";
+            this.titleLabel.Size = new System.Drawing.Size(200, 100);
+            this.titleLabel.TabIndex = 0;
+            this.titleLabel.Text = "Title";
+            this.titleLabel.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            // 
+            // descriptionLabel
+            // 
+            this.descriptionLabel.BackColor = System.Drawing.Color.Transparent;
+            this.descriptionLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.descriptionLabel.ForeColor = System.Drawing.Color.Gray;
+            this.descriptionLabel.Location = new System.Drawing.Point(12, 109);
+            this.descriptionLabel.Name = "descriptionLabel";
+            this.descriptionLabel.Size = new System.Drawing.Size(200, 100);
+            this.descriptionLabel.TabIndex = 1;
+            this.descriptionLabel.Text = "Description";
+            this.descriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.debugLabel);
+            this.Controls.Add(this.descriptionLabel);
+            this.Controls.Add(this.titleLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "Form1";
             this.Text = "Form1";
@@ -93,14 +107,13 @@ namespace LinkWheel
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseUp);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
-
-        private Label debugLabel;
         private System.Windows.Forms.Timer Timer1;
+        private Label titleLabel;
+        private Label descriptionLabel;
     }
 }
 

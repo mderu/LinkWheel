@@ -28,6 +28,9 @@ namespace LinkWheel
         private Screen currentScreen;
         public List<IdelAction> actions = new();
 
+        private int lastHoveredIndex = -1;
+        private double lastHoverStartTime = 0;
+
         private Point WheelCenterGlobal { get; set; }
 
         public Form1(Point wheelCenterGlobal, List<IdelAction> actions)
@@ -59,25 +62,11 @@ namespace LinkWheel
             // Painting with T here to fade in slightly.
             g.FillRectangle(new SolidBrush(Color.FromArgb((int)(192.0d * T), 0, 0, 0)), screenRect);
 
-            int closestIndex = 0;
-            Point[] wheelCenters = new Point[actions.Count];
-            wheelCenters[0] = GetWheelIconCenter(0);
-            int[] sqDistances = new int[actions.Count];
             Point localCursorPosition = new(
                 Cursor.Position.X - Location.X,
                 Cursor.Position.Y - Location.Y
             );
 
-            sqDistances[0] = wheelCenters[0].Subtract(localCursorPosition).GetSquareMagnitude();
-            for (int i = 1; i < actions.Count; i++)
-            {
-                wheelCenters[i] = GetWheelIconCenter(i);
-                sqDistances[i] = wheelCenters[i].Subtract(localCursorPosition).GetSquareMagnitude();
-                if (sqDistances[closestIndex] > sqDistances[i])
-                {
-                    closestIndex = i;
-                }
-            }
             Point diff = WheelCenterGlobal.Subtract(Cursor.Position);
             float mouseAngle = (float)(Math.Atan2(diff.Y, diff.X) * 180.0 / Math.PI) + 180.0f;
 
@@ -95,38 +84,65 @@ namespace LinkWheel
             );
 
             float sweepAngle = 360.0f / actions.Count;
+            int selectedAction = -1;
             for (int i = 0; i < actions.Count; i++)
             {
                 GraphicsPath gp = new();
                 float startAngle = (i - 0.5f) / actions.Count * 360.0f;
-                gp.AddArc(outerCircleBounds, startAngle, sweepAngle);
-                // Then, draw the inner arc in the reverse direction to allow convex fill.
-                gp.AddArc(innerCircleBounds, startAngle + sweepAngle, -sweepAngle);
                 Color color;
+                Rectangle inner = innerCircleBounds;
+                Rectangle outer = outerCircleBounds;
+                int radius = WheelRadius;
                 if (MathUtils.IsBetweenAngles(mouseAngle, startAngle, startAngle + sweepAngle) 
                     && (localCursorPosition.Subtract(WheelCenter).GetSquareMagnitude() > DeadSelectionRadius * DeadSelectionRadius))
                 {
-                    color = Color.FromArgb(192, 255, 255, 255);
+                    selectedAction = i;
+                    
+                    if (lastHoveredIndex != selectedAction)
+                    {
+                        lastHoverStartTime = Stopwatch.Elapsed.TotalSeconds;
+                    }
+
+                    color = Color.FromArgb(192, 0, 192, 255);
+
+                    radius += (int)Math.Clamp(Math.Sqrt(Stopwatch.Elapsed.TotalSeconds - lastHoverStartTime) * 30, 0, 10);
+                    inner = new(
+                        WheelCenter.X - radius - WheelArcWidth / 2,
+                        WheelCenter.Y - radius - WheelArcWidth / 2,
+                        radius * 2 + WheelArcWidth,
+                        radius * 2 + WheelArcWidth
+                    );
+                    outer = new(
+                        WheelCenter.X - radius + WheelArcWidth / 2,
+                        WheelCenter.Y - radius + WheelArcWidth / 2,
+                        radius * 2 - WheelArcWidth,
+                        radius * 2 - WheelArcWidth
+                    );
                 }
                 else
                 {
                     float angleDiff = MathUtils.ShortestAngleDifference(mouseAngle, startAngle + sweepAngle / 2);
                     color = Color.FromArgb(
-                        255 - (int)(192.0f * Math.Clamp(MathF.Abs(angleDiff) / 90.0f, 0, 1)),
-                        64, 
-                        64, 
-                        64);
+                        255 - (int)(192.0f * Math.Clamp(MathF.Abs(angleDiff) / 90, 0, 1)),
+                        96, 
+                        96, 
+                        96);
                 }
+                gp.AddArc(outer, startAngle, sweepAngle);
+                // Then, draw the inner arc in the reverse direction to allow convex fill.
+                gp.AddArc(inner, startAngle + sweepAngle, -sweepAngle);
                 g.FillPath(new SolidBrush(color), gp);
 
                 Bitmap icon = actions[i].Icon ?? Resources.MissingIcon;
+
+                Point center = GetWheelIconCenter((float)i / actions.Count, radius);
 
                 if (actions[i].IconSecondary is null)
                 {
                     g.DrawImage(
                         icon,
-                        (int)(wheelCenters[i].X - IconUtils.IconSize / 2.0f),
-                        (int)(wheelCenters[i].Y - IconUtils.IconSize / 2.0f),
+                        (int)(center.X - IconUtils.IconSize / 2.0f),
+                        (int)(center.Y - IconUtils.IconSize / 2.0f),
                         IconUtils.IconSize,
                         IconUtils.IconSize);
                 }
@@ -134,19 +150,26 @@ namespace LinkWheel
                 {
                     g.DrawImage(
                         IconUtils.Compose(IconUtils.RoundCorners(icon), actions[i].IconSecondary),
-                        (int)(wheelCenters[i].X - IconUtils.IconSize / 2.0f),
-                        (int)(wheelCenters[i].Y - IconUtils.IconSize / 2.0f),
+                        (int)(center.X - IconUtils.IconSize / 2.0f),
+                        (int)(center.Y - IconUtils.IconSize / 2.0f),
                         IconUtils.IconSize,
                         IconUtils.IconSize);
                 }
             }
+
+            if (selectedAction != -1)
+            {
+                titleLabel.Text = actions[selectedAction].Title;
+                descriptionLabel.Text = actions[selectedAction].Description;
+            }
+            lastHoveredIndex = selectedAction;
         }
 
-        private Point GetWheelIconCenter(int wheelElementIndex)
+        private Point GetWheelIconCenter(float percentile, float radius)
         {
             return new Point(
-                WheelCenter.X + (int)(MathF.Cos((float)wheelElementIndex / actions.Count * MathF.PI * 2) * WheelRadius),
-                WheelCenter.Y + (int)(MathF.Sin((float)wheelElementIndex / actions.Count * MathF.PI * 2) * WheelRadius));
+                WheelCenter.X + (int)(MathF.Cos(percentile * MathF.PI * 2) * radius),
+                WheelCenter.Y + (int)(MathF.Sin(percentile * MathF.PI * 2) * radius));
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -168,6 +191,9 @@ namespace LinkWheel
             DoubleBuffered = true;
             Stopwatch = new Stopwatch();
             Stopwatch.Start();
+
+            titleLabel.Location = new(WheelCenter.X - titleLabel.Size.Width / 2, WheelCenter.Y - titleLabel.Size.Height - titleLabel.Margin.Bottom / 2);
+            descriptionLabel.Location = new(WheelCenter.X - descriptionLabel.Size.Width / 2, WheelCenter.Y + descriptionLabel.Margin.Top / 2 - descriptionLabel.Margin.Bottom / 2);
 
             TopMost = true;
             Show();
