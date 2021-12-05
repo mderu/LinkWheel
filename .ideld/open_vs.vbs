@@ -1,4 +1,8 @@
-' Copied verbatim from https://github.com/evgeny-panasyuk/open-in-msvs.el/blob/master/open-in-msvs.vbs
+' Copied from https://github.com/evgeny-panasyuk/open-in-msvs.el/blob/master/open-in-msvs.vbs
+'
+' Made the following modifications:
+'  * Added additional VisualStudio.DTE versions
+'
 ' See https://stackoverflow.com/questions/3219380/visual-studio-how-to-open-file-from-windows-command-line-to-specific-line-in-ru
 ' for more info
 
