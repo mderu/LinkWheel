@@ -91,10 +91,10 @@
             priority: -100,
             batchCommand: "
                 IF [(=request.startLine=)] == [] GOTO NoLineNum
-                %CD%/.ideld/open_vs.vbs (=request.file=) 0 0
+                %CD%/.ideld/open_vs.vbs (=request.file=) (=request.startLine=) 0
                 exit
                 :NoLineNum
-                %CD%/.ideld/open_vs.vbs (=request.file=) (=request.startLine=) 0
+                %CD%/.ideld/open_vs.vbs (=request.file=) 0 0
             ",
             title: "Visual Studio",
             description: "Opens (=request.relativePath=) in Visual Studio",
