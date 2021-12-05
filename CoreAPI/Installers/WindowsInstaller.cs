@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security;
+using System.Text.RegularExpressions;
 
 // It seems the operating system check in the constructor does not suffice for disabling this warning.
 #pragma warning disable CA1416 // Validate platform compatibility
@@ -44,34 +45,7 @@ namespace CoreAPI.Installers
             {
                 InterceptBrowserShellCommands();
                 WriteRegistryClassKey();
-                CopyToInstallDirectory();
                 UpdateSystemPath();
-            }
-        }
-
-        public void CopyToInstallDirectory()
-        {
-            string currentPath = AppDomain.CurrentDomain.BaseDirectory;
-            if (FileUtils.ArePathsEqual(currentPath, LinkWheelConfig.InstallDirectory))
-            {
-                // No need to copy, it's already been installed.
-                return;
-            }
-            // TODO: stop hardcoding these executable names.
-            foreach (string exeName in new string[] { "linkWheel.exe", "linkWheelCli.exe" })
-            {
-                try
-                {
-                    File.Copy(
-                        Path.Combine(currentPath, exeName),
-                        Path.Combine(LinkWheelConfig.InstallDirectory, exeName),
-                        overwrite: true
-                    );
-                }
-                catch (Exception)
-                {
-                    throw new Exception($"Please close any other running {exeName} before continuing to re-install.");
-                }
             }
         }
 
@@ -191,7 +165,7 @@ namespace CoreAPI.Installers
             string executablePath = args[0].EndsWith(".dll") ? args[0][..^4] + ".exe" : args[0];
             // Also, start the browser using the GUI LinkWheel instead of the CLI.
             executablePath = executablePath.Replace("LinkWheelCli.exe", "LinkWheel.exe");
-
+            // "C:\Users\markd\AppData\Roaming\linkWheel\bin\LinkWheel.exe" serve --url %1 -- "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --single-argument %1
             var browserClasses = GetAllBrowserRegistryClassPaths();
             using RegistryKey? classKey = Registry.CurrentUser.OpenSubKey(LinkWheelConfig.Registry.ClassKey, true);
             if (classKey is null)
@@ -209,7 +183,8 @@ namespace CoreAPI.Installers
                     continue;
                 }
                 string[] prevArgs = CliUtils.CommandLineToArgs(prevCmdline);
-                if (prevArgs[0].EndsWith("linkWheel.exe", StringComparison.InvariantCultureIgnoreCase))
+                Regex endsWithLinkWheelExe = new("linkWheelExe\"$", RegexOptions.IgnoreCase);
+                if (endsWithLinkWheelExe.IsMatch(prevArgs[0]))
                 {
                     // If a previous version of LinkWheel is already installed, update the string in case the path
                     // has changed.

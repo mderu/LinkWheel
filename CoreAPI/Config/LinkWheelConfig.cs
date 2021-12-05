@@ -6,13 +6,14 @@ namespace CoreAPI.Config
     public static class LinkWheelConfig
     {
         public const string ApplicationName = "LinkWheel";
-        public static string InstallDirectory => installPath.Value;
+        public static string DataDirectory => dataPath.Value;
+        public static string InstallDirectory => Path.Combine(DataDirectory, "bin");
 
         public static string IconCachePath => GetIconCachePath.Value;
-        private static Lazy<string> GetIconCachePath = new(() => Path.Combine(InstallDirectory, "iconCachePath"));
+        private static Lazy<string> GetIconCachePath = new(() => Path.Combine(DataDirectory, "iconCachePath"));
 
-        public static string TrackedReposFile => Path.Combine(installPath.Value, "trackedRepos.json");
-        private static readonly Lazy<string> installPath = new(() =>
+        public static string TrackedReposFile => Path.Combine(dataPath.Value, "trackedRepos.json");
+        private static readonly Lazy<string> dataPath = new(() =>
         {
             if (OperatingSystem.IsWindows())
             {

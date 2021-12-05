@@ -47,7 +47,7 @@ namespace CoreAPI.Utils
         public static string JoinToCommandLine(IEnumerable<string> args)
         {
             StringBuilder result = new();
-            foreach(string arg in args)
+            foreach (string arg in args)
             {
                 if (arg.Contains(" "))
                 {
@@ -61,7 +61,10 @@ namespace CoreAPI.Utils
                 }
                 result.Append(' ');
             }
-            result.Remove(result.Length - 1, 1);
+            if (args.Any())
+            {
+                result.Remove(result.Length - 1, 1);
+            }
             return result.ToString();
         }
 

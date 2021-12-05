@@ -164,7 +164,6 @@ namespace CoreAPI.Cli
             }
 
             IconResult browserIcon = IconUtils.DefaultBrowserIcon;
-
             // Special case pass-through websites: don't bother trying to grab icons if they are unrelated to your repos.
             // We do this so we don't make all non-repo links slower to open (e.g., YouTube, Drive, Facebook, Amazon, etc).
             // The case where this is particularly bad is where the website linked to is slow or dead, and it eventually
