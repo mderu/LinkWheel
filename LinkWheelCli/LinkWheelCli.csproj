@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LinkWheel\LinkWheel.csproj" />
+    <ProjectReference Include="..\CoreAPI\CoreAPI.csproj" />
   </ItemGroup>
 
 </Project>

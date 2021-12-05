@@ -48,6 +48,7 @@ namespace LinkWheel
                         GetRegistration,
                         OpenInDefaultBrowser,
                         RegisterRepo,
+                        ServeClipboard,
                         GetActions,
                         Uninstall
                     >(args[argStart..])
@@ -59,6 +60,7 @@ namespace LinkWheel
                     (Install verb) => verb.ExecuteAsync(),
                     (GetRegistration verb) => verb.ExecuteAsync(),
                     (OpenInDefaultBrowser verb) => verb.ExecuteAsync(),
+                    (ServeClipboard verb) => verb.ExecuteAsync(),
                     (RegisterRepo verb) => verb.ExecuteAsync(),
                     (GetActions verb) => verb.ExecuteAsync(),
                     (Uninstall verb) => verb.ExecuteAsync(),

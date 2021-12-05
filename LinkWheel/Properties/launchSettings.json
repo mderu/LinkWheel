@@ -2,7 +2,7 @@
   "profiles": {
     "LinkWheel": {
       "commandName": "Project",
-      "commandLineArgs": "serve --url https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs#L15 -- \\\"C:\\\\Program Files (x86)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\\\" --single-argument https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs#L15",
+      "commandLineArgs": "serve --url https://www.youtube.com/watch?v=1XNoiP_nZgs&ab_channel=Ostonox -- \\\"C:\\\\Program Files (x86)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\\\" --single-argument https://www.youtube.com/watch?v=1XNoiP_nZgs&ab_channel=Ostonox",
       "remoteDebugEnabled": false,
       "remoteDebugMachine": "127.0.0.1"
     },

@@ -1,10 +1,5 @@
 {
   "profiles": {
-    "LinkWheelCli": {
-      "commandName": "Project",
-      "commandLineArgs": "get-url --file LinkWheel\\LinkWheel\\Program.cs",
-      "workingDirectory": "../../"
-    },
     "Install": {
       "commandName": "Project",
       "commandLineArgs": "install"
@@ -37,6 +32,14 @@
       "commandName": "Project",
       "commandLineArgs": "--format \"Type=(=results[0].remoteRepoHostType=), Link=(=results[0].remoteRootUri=)\" get-root --path LinkWheel\\CoreAPI\\Cli\\HandleOutput.cs",
       "workingDirectory": "../../"
+    },
+    "ServeClipboard": {
+      "commandName": "Project",
+      "commandLineArgs": "serve-clipboard"
+    },
+    "Enable": {
+      "commandName": "Project",
+      "commandLineArgs": "enable"
     }
   }
 }

@@ -35,9 +35,9 @@ namespace LinkWheel
             SetMenuStrip();
             RepoWatchers = new List<FileSystemWatcher>();
 
-            Directory.CreateDirectory(LinkWheelConfig.InstallDirectory);
+            Directory.CreateDirectory(LinkWheelConfig.DataDirectory);
             // Add the watcher for the configuration files.
-            ConfigDirectoryWatcher = new(LinkWheelConfig.InstallDirectory)
+            ConfigDirectoryWatcher = new(LinkWheelConfig.DataDirectory)
             {
                 NotifyFilter = DefaultFilter
             };
