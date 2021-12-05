@@ -18,6 +18,7 @@
             //  * request:
             //      url: string  // The URL being exercised
             //      file: string  // The absolute path to the file specified in the URL
+            //      relativePath: string  // The path of the file specified in the URL, relative to the repo root.
             //      startLine: int | null  // The first line number linked to, if any is specified.
             //                             // You can check if it is specified with
             //                             //   (=$.request[?(@.startLine != null)]=)
@@ -53,7 +54,7 @@
             title: "VS Code",
             
             // A longer description of what action is taken.
-            description: "Opens (=request.file=) in VS Code",
+            description: "Opens (=request.relativePath=) in VS Code",
             
             // This one needs re-thinking so I'm skipping implementation for now.
             //
@@ -96,7 +97,7 @@
                 %CD%/.ideld/open_vs.vbs (=request.file=) (=request.startLine=) 0
             ",
             title: "Visual Studio",
-            description: "Opens (=request.file=) in Visual Studio",
+            description: "Opens (=request.relativePath=) in Visual Studio",
             fnmatch: "(=action.fnmatch=)",  // Defer the fnmatch strings to the idelconfig file.
             iconSource: "devenv.exe",
             iconSourceSecondary: "(=request.file=)",
@@ -105,7 +106,7 @@
             priority: -90,
             batchCommand: "(=request.file=)",
             title: "Open in Default Editor",
-            description: "Opens (=request.file=) in your default editor",
+            description: "Opens (=request.relativePath=) in your default editor",
             fnmatch: "**",  // Always match everything.
             iconSource: "(=request.file=)"
         },
@@ -113,7 +114,7 @@
             priority: 0,
             batchCommand: "C:/Windows/explorer.exe /select,\"(=request.normalizedFile=)\"",
             title: "Show In Explorer",
-            description: "Reveals (=request.file=) in the file explorer",
+            description: "Reveals (=request.relativePath=) in the file explorer",
             fnmatch: "**",  // Always match everything.
             iconSource: "C:/Windows/explorer.exe"
         },
