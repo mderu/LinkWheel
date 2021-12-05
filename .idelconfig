@@ -105,8 +105,8 @@
         openInDefaultEditor: {
             priority: -90,
             batchCommand: "(=request.file=)",
-            title: "Open in Default Editor",
-            description: "Opens (=request.relativePath=) in your default editor",
+            title: "Open File",
+            description: "Behaves as if you double clicked (=request.relativePath=) in the File Explorer",
             fnmatch: "**",  // Always match everything.
             iconSource: "(=request.file=)"
         },
