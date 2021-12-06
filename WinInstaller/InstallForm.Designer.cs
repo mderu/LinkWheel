@@ -29,63 +29,57 @@ namespace WinInstaller
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(InstallForm));
             this.vscodeCheckbox = new System.Windows.Forms.CheckBox();
             this.visualStudioCheckbox = new System.Windows.Forms.CheckBox();
-            this.checkBox3 = new System.Windows.Forms.CheckBox();
-            this.label1 = new System.Windows.Forms.Label();
+            this.linkWheelCheckbox = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
             this.installButton = new System.Windows.Forms.Button();
             this.uninstallButton = new System.Windows.Forms.Button();
+            this.globalConfigCheckbox = new System.Windows.Forms.CheckBox();
+            this.englishToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // vscodeCheckbox
             // 
             this.vscodeCheckbox.AutoSize = true;
             this.vscodeCheckbox.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.vscodeCheckbox.Location = new System.Drawing.Point(59, 99);
+            this.vscodeCheckbox.Location = new System.Drawing.Point(59, 100);
             this.vscodeCheckbox.Name = "vscodeCheckbox";
             this.vscodeCheckbox.Size = new System.Drawing.Size(124, 19);
             this.vscodeCheckbox.TabIndex = 0;
             this.vscodeCheckbox.Text = "VS Code Extension";
+            this.englishToolTip.SetToolTip(this.vscodeCheckbox, "A VSCode extension to generate links and register repos for LinkWheel");
             this.vscodeCheckbox.UseVisualStyleBackColor = true;
             // 
             // visualStudioCheckbox
             // 
             this.visualStudioCheckbox.AutoSize = true;
             this.visualStudioCheckbox.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.visualStudioCheckbox.Location = new System.Drawing.Point(59, 121);
+            this.visualStudioCheckbox.Location = new System.Drawing.Point(59, 122);
             this.visualStudioCheckbox.Margin = new System.Windows.Forms.Padding(50, 3, 50, 3);
             this.visualStudioCheckbox.Name = "visualStudioCheckbox";
             this.visualStudioCheckbox.Size = new System.Drawing.Size(148, 19);
             this.visualStudioCheckbox.TabIndex = 1;
             this.visualStudioCheckbox.Text = "Visual Studio Extension";
+            this.englishToolTip.SetToolTip(this.visualStudioCheckbox, "A Visual Studio extension to generate links and register repos for LinkWheel");
             this.visualStudioCheckbox.UseVisualStyleBackColor = true;
             // 
-            // checkBox3
+            // linkWheelCheckbox
             // 
-            this.checkBox3.AutoSize = true;
-            this.checkBox3.BackColor = System.Drawing.Color.Transparent;
-            this.checkBox3.Checked = true;
-            this.checkBox3.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox3.Enabled = false;
-            this.checkBox3.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.checkBox3.Location = new System.Drawing.Point(59, 79);
-            this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(15, 14);
-            this.checkBox3.TabIndex = 2;
-            this.checkBox3.UseVisualStyleBackColor = false;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.BackColor = System.Drawing.Color.Transparent;
-            this.label1.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.label1.Location = new System.Drawing.Point(74, 78);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(62, 15);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "LinkWheel";
+            this.linkWheelCheckbox.AutoSize = true;
+            this.linkWheelCheckbox.BackColor = System.Drawing.Color.Transparent;
+            this.linkWheelCheckbox.Checked = true;
+            this.linkWheelCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.linkWheelCheckbox.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.linkWheelCheckbox.Location = new System.Drawing.Point(59, 80);
+            this.linkWheelCheckbox.Name = "linkWheelCheckbox";
+            this.linkWheelCheckbox.Size = new System.Drawing.Size(81, 19);
+            this.linkWheelCheckbox.TabIndex = 2;
+            this.linkWheelCheckbox.Text = "LinkWheel";
+            this.englishToolTip.SetToolTip(this.linkWheelCheckbox, "The required executables on the system path for LinkWheel to work");
+            this.linkWheelCheckbox.UseVisualStyleBackColor = false;
             // 
             // label2
             // 
@@ -107,7 +101,7 @@ namespace WinInstaller
             this.installButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.installButton.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.installButton.ForeColor = System.Drawing.SystemColors.InfoText;
-            this.installButton.Location = new System.Drawing.Point(40, 165);
+            this.installButton.Location = new System.Drawing.Point(40, 179);
             this.installButton.Margin = new System.Windows.Forms.Padding(10, 10, 10, 5);
             this.installButton.Name = "installButton";
             this.installButton.Size = new System.Drawing.Size(181, 37);
@@ -123,7 +117,7 @@ namespace WinInstaller
             this.uninstallButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.uninstallButton.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.uninstallButton.ForeColor = System.Drawing.SystemColors.InfoText;
-            this.uninstallButton.Location = new System.Drawing.Point(40, 212);
+            this.uninstallButton.Location = new System.Drawing.Point(40, 226);
             this.uninstallButton.Margin = new System.Windows.Forms.Padding(10, 5, 10, 10);
             this.uninstallButton.Name = "uninstallButton";
             this.uninstallButton.Size = new System.Drawing.Size(181, 37);
@@ -132,17 +126,30 @@ namespace WinInstaller
             this.uninstallButton.UseVisualStyleBackColor = false;
             this.uninstallButton.Click += new System.EventHandler(this.UninstallButton_Click);
             // 
+            // globalConfigCheckbox
+            // 
+            this.globalConfigCheckbox.AutoSize = true;
+            this.globalConfigCheckbox.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.globalConfigCheckbox.Location = new System.Drawing.Point(59, 144);
+            this.globalConfigCheckbox.Margin = new System.Windows.Forms.Padding(50, 3, 50, 3);
+            this.globalConfigCheckbox.Name = "globalConfigCheckbox";
+            this.globalConfigCheckbox.Size = new System.Drawing.Size(140, 19);
+            this.globalConfigCheckbox.TabIndex = 7;
+            this.globalConfigCheckbox.Text = "Default Global Config";
+            this.englishToolTip.SetToolTip(this.globalConfigCheckbox, resources.GetString("globalConfigCheckbox.ToolTip"));
+            this.globalConfigCheckbox.UseVisualStyleBackColor = true;
+            // 
             // InstallForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(16)))), ((int)(((byte)(16)))), ((int)(((byte)(16)))));
-            this.ClientSize = new System.Drawing.Size(266, 268);
+            this.ClientSize = new System.Drawing.Size(266, 278);
+            this.Controls.Add(this.globalConfigCheckbox);
             this.Controls.Add(this.uninstallButton);
             this.Controls.Add(this.installButton);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.checkBox3);
+            this.Controls.Add(this.linkWheelCheckbox);
             this.Controls.Add(this.visualStudioCheckbox);
             this.Controls.Add(this.vscodeCheckbox);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -160,11 +167,12 @@ namespace WinInstaller
 
         private System.Windows.Forms.CheckBox vscodeCheckbox;
         private System.Windows.Forms.CheckBox visualStudioCheckbox;
-        private System.Windows.Forms.CheckBox checkBox3;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.CheckBox linkWheelCheckbox;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button installButton;
         private System.Windows.Forms.Button uninstallButton;
+        private System.Windows.Forms.CheckBox globalConfigCheckbox;
+        private System.Windows.Forms.ToolTip englishToolTip;
     }
 }
 

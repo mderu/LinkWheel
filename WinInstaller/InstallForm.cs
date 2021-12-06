@@ -2,16 +2,9 @@
 using CoreAPI.Utils;
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinInstaller.Properties;
 
@@ -65,6 +58,8 @@ namespace WinInstaller
         string InstallPath => Path.Combine(LinkWheelConfig.DataDirectory, "bin");
         string VSExtensionPath => Path.Combine(InstallPath, "vs", "linkWheelVSIX_VS.vsix");
         string VSCodeExtensionPath => Path.Combine(InstallPath, "vscode", "linkWheelVSIX_VSCode.vsix");
+        string GlobalConfigPath => Path.Combine(LinkWheelConfig.DataDirectory, ".idelconfig");
+        string GlobalConfigResourcesDir => Path.Combine(LinkWheelConfig.DataDirectory, ".ideld");
 
         private void WipeInstallDirectory()
         {
@@ -80,9 +75,12 @@ namespace WinInstaller
 
         private void InstallButton_Click(object sender, EventArgs e)
         {
-            WipeInstallDirectory();
-            UnpackResource(Resources.LinkWheelZip, InstallPath);
-            CliUtils.SimpleInvoke("linkWheelCli.exe install", InstallPath);
+            if (linkWheelCheckbox.Checked)
+            {
+                WipeInstallDirectory();
+                UnpackResource(Resources.LinkWheelZip, InstallPath);
+                CliUtils.SimpleInvoke("linkWheelCli.exe install", InstallPath);
+            }
             if (visualStudioCheckbox.Checked)
             {
                 if (!FileUtils.TryGetInstalledExe("devenv.exe", out string devEnvPath))
@@ -122,6 +120,19 @@ namespace WinInstaller
                     File.WriteAllBytes(VSCodeExtensionPath, Resources.VSCodeExtension);
                     CliUtils.SimpleInvoke($"code --install-extension \"{VSCodeExtensionPath}\"", InstallPath);
                 }
+            }
+            if (globalConfigCheckbox.Checked)
+            {
+                if (Directory.Exists(GlobalConfigResourcesDir))
+                {
+                    Directory.Delete(GlobalConfigResourcesDir, recursive: true);
+                }
+                UnpackResource(Resources.ideld, GlobalConfigResourcesDir);
+                if (File.Exists(GlobalConfigPath))
+                {
+                    File.Delete(GlobalConfigPath);
+                }
+                File.WriteAllText(GlobalConfigPath, Resources.idelconfig);
             }
 
             MessageBox.Show("Installation complete. You may now close the installer.");
@@ -166,8 +177,22 @@ namespace WinInstaller
                     Directory.Delete(unzipDir, recursive: true);
                 }
             }
-            CliUtils.SimpleInvoke("linkWheelCli.exe uninstall", InstallPath);
-            WipeInstallDirectory();
+            if (linkWheelCheckbox.Checked)
+            {
+                CliUtils.SimpleInvoke("linkWheelCli.exe uninstall", InstallPath);
+                WipeInstallDirectory();
+            }
+            if (globalConfigCheckbox.Checked)
+            {
+                if (Directory.Exists(GlobalConfigResourcesDir))
+                {
+                    Directory.Delete(GlobalConfigResourcesDir, recursive: true);
+                }
+                if (File.Exists(GlobalConfigPath))
+                {
+                    File.Delete(GlobalConfigPath);
+                }
+            }
 
             MessageBox.Show("Uninstall complete. You may now close the uninstaller.");
         }

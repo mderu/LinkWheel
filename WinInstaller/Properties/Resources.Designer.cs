@@ -61,6 +61,39 @@ namespace WinInstaller.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to // This file is loaded in using the Newtonsoft JSON Parser.
+        ///// It supports the following:
+        /////
+        /////   * Line comments (e.g., // Comment)
+        /////   * Block comments (e.g., /* Comment */)
+        /////   * quoteless properties (e.g., {foo: &quot;bar&quot;})
+        /////   * Trailing commas (e.g., {&quot;foo&quot;: &quot;bar&quot;,})
+        /////   * Multiline strings (e.g., {&quot;foo&quot;: &quot;bar
+        /////                                       baz&quot;})
+        ///{
+        ///    definitions: {
+        ///        vscode: {
+        ///            priority: -100,  // Have VSCode show up early in the actions list.
+        ///            
+        ///  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string idelconfig {
+            get {
+                return ResourceManager.GetString("idelconfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ideld {
+            get {
+                object obj = ResourceManager.GetObject("ideld", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] LinkWheelZip {
