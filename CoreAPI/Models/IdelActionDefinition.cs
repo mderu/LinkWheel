@@ -56,6 +56,12 @@ namespace CoreAPI.Models
         public string? BatchCommand { get; set; } = "start /B code \"(=actionInstance.workspacePath=)\" & powershell sleep .1 & start /B code (=request.file=):(=request.startLine=)";
 
         /// <summary>
+        /// The .idelconfig file this action was defined in.
+        /// </summary>
+        [JsonIgnore]
+        public string ActionSourceFile { get; set; } = "";
+
+        /// <summary>
         /// A brief name of what is opened when this action is selected.
         /// </summary>
         [JsonProperty("title")]

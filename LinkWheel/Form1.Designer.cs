@@ -74,7 +74,7 @@ namespace LinkWheel
             this.titleLabel.Name = "titleLabel";
             this.titleLabel.Size = new System.Drawing.Size(200, 100);
             this.titleLabel.TabIndex = 0;
-            this.titleLabel.Text = "Title";
+            this.titleLabel.Text = "Link Wheel";
             this.titleLabel.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             // 
             // descriptionLabel
@@ -86,7 +86,7 @@ namespace LinkWheel
             this.descriptionLabel.Name = "descriptionLabel";
             this.descriptionLabel.Size = new System.Drawing.Size(200, 100);
             this.descriptionLabel.TabIndex = 1;
-            this.descriptionLabel.Text = "Description";
+            this.descriptionLabel.Text = "Hover over an icon for more information";
             this.descriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // Form1

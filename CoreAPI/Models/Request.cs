@@ -41,7 +41,7 @@ namespace CoreAPI.Models
         {
             get
             {
-                Uri parentUri = new(Environment.CurrentDirectory, UriKind.Absolute);
+                Uri parentUri = new(RepoConfig.Root, UriKind.Absolute);
                 Uri childUri = new(File, UriKind.Absolute);
 
                 return parentUri.MakeRelativeUri(childUri).ToString();

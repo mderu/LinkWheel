@@ -2,7 +2,6 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using CoreAPI.Config;
@@ -33,6 +32,132 @@ namespace CoreAPI.Cli
             return new OutputData(0, new() { ["actions"] = actions }, "(=actions=)");
         }
 
+        private async Task<List<IdelAction>> GetActionsForFile(string filePath, Request request)
+        {
+            string idelConfigPath = filePath;
+            Dictionary<string, IdelActionDefinition> actionDefinitions = new();
+            Dictionary<string, JObject> actions = new();
+            List<IdelAction> completedActions = new();
+
+            string prevCwd = Directory.GetCurrentDirectory();
+            // Forgiveness: filePath is always a file.
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath)!);
+            if (File.Exists(idelConfigPath))
+            {
+                IdelConfig? repoIdelConfig = JsonConvert.DeserializeObject<IdelConfig>(
+                    await File.ReadAllTextAsync(idelConfigPath));
+                if (repoIdelConfig?.Definitions is not null)
+                {
+                    // Add the file path as the action source.
+                    foreach (IdelActionDefinition value in repoIdelConfig.Definitions.Values)
+                    {
+                        value.ActionSourceFile = filePath;
+                    }
+                    actionDefinitions.Update(repoIdelConfig.Definitions);
+                }
+                if (repoIdelConfig?.Actions is not null)
+                {
+                    foreach (var nameActionPair in repoIdelConfig.Actions)
+                    {
+                        if (!nameActionPair.Value.ContainsKey("definition"))
+                        {
+                            throw new Exception($"Action {nameActionPair.Key} does not contain the key " +
+                                $"`definition`. This value must be a string that matches a name in the " +
+                                $"`definitions` object.");
+                        }
+                        if (nameActionPair.Value["definition"] is null
+                            || nameActionPair.Value["definition"]?.Type != JTokenType.String)
+                        {
+                            throw new Exception($"Action {nameActionPair.Key} must be a string that matches " +
+                                $"a name in the `definitions` object.");
+                        }
+                        // Forgiveness: the above if statement guarantees this string isn't null.
+                        if (!actionDefinitions.ContainsKey((string)nameActionPair.Value["definition"]!))
+                        {
+                            throw new Exception($"Action {nameActionPair.Key} must match a name in the " +
+                                $"`definitions` object.");
+                        }
+                    }
+                    actions.Update(repoIdelConfig.Actions);
+                }
+            }
+
+            foreach (var nameActionPair in actions)
+            {
+                // Forgiveness: we guaranteed this exists above.
+                IdelActionDefinition definition = actionDefinitions[(string)nameActionPair.Value["definition"]!];
+                Dictionary<string, object> formatInfo = new()
+                {
+                    ["request"] = request,
+                    ["action"] = nameActionPair.Value,
+                    ["name"] = nameActionPair.Key,
+                    ["definition"] = definition,
+                };
+
+                // Hacking the output formatter to format these values for us.
+                // Here, we get FnMatches.
+                OutputFormatter formatter = new();
+                OutputData data = new(0, formatInfo);
+                string[] fnMatches = formatter.GetOutput(data, definition.FnMatches).Trim().Split(
+                    new string[] { "\r\n", "\r", "\n" },
+                    StringSplitOptions.None
+                );
+                Matcher matcher = new();
+                foreach (string fnmatch in fnMatches)
+                {
+                    matcher.AddInclude(fnmatch.TrimStart());
+                }
+                if (!matcher.Match(request.RelativePath).HasMatches)
+                {
+                    continue;
+                }
+
+                int priority = definition.Priority;
+                string command;
+                if (OperatingSystem.IsWindows() && definition.BatchCommand != null)
+                {
+                    command = formatter.GetOutput(data, definition.BatchCommand);
+                }
+                else if (definition.BashCommand != null)
+                {
+                    command = formatter.GetOutput(data, definition.BatchCommand);
+                }
+                else
+                {
+                    throw new ArgumentException(
+                        $"Either `batchCommand` or `batchCommand` must be " +
+                        $"specified for action {nameActionPair.Key}.");
+                }
+                string title = formatter.GetOutput(data, definition.Title);
+                string description = formatter.GetOutput(data, definition.Description);
+                IconResult icon = new(null, "");
+                IconResult iconSecondary = new(null, "");
+                if (definition.Icon is not null)
+                {
+                    icon = IconUtils.FetchIcon(formatter.GetOutput(data, definition.Icon));
+                }
+                if (definition.IconSecondary is not null)
+                {
+                    iconSecondary = IconUtils.FetchIcon(formatter.GetOutput(data, definition.IconSecondary));
+                }
+                completedActions.Add(new IdelAction(
+                    priority: priority,
+                    command: command,
+                    title: title,
+                    description: description,
+                    iconSource: icon.Path,
+                    iconSecondarySource: iconSecondary.Path
+                )
+                {
+                    Icon = icon.Icon,
+                    IconSecondary = iconSecondary.Icon,
+                    CommandWorkingDirectory = request.RepoConfig.Root,
+                });
+            }
+            Directory.SetCurrentDirectory(prevCwd);
+            return completedActions;
+        }
+
         public async Task<List<IdelAction>> Get()
         {
             List<IdelAction> completedActions = new();
@@ -46,120 +171,13 @@ namespace CoreAPI.Cli
                     // Forgiveness: if the try passes, it isn't null.
                     Request request = unforgivenRequest!;
 
-                    string idelConfigPath = Path.Combine(request.RepoConfig.Root, ".idelconfig");
-                    Dictionary<string, IdelActionDefinition> actionDefinitions = new();
-                    Dictionary<string, JObject> actions = new();
+                    string repoIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".idelconfig");
+                    string userIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".user.idelconfig");
+                    string globalIdelConfigPath = Path.Combine(LinkWheelConfig.DataDirectory, ".idelconfig");
 
-                    // TODO: Repeat this for user-only idelconfigs (one in HOME and the other in as `./.user.idelconfig`.
-                    string prevCwd = Directory.GetCurrentDirectory();
-                    Directory.SetCurrentDirectory(request.RepoConfig.Root);
-                    if (File.Exists(idelConfigPath))
-                    {
-                        IdelConfig? repoIdelConfig = JsonConvert.DeserializeObject<IdelConfig>(await File.ReadAllTextAsync(idelConfigPath));
-                        if (repoIdelConfig?.Definitions is not null)
-                        {
-                            actionDefinitions.Update(repoIdelConfig.Definitions);
-                        }
-                        if (repoIdelConfig?.Actions is not null)
-                        {
-                            foreach (var nameActionPair in repoIdelConfig.Actions)
-                            {
-                                if (!nameActionPair.Value.ContainsKey("definition"))
-                                {
-                                    throw new Exception($"Action {nameActionPair.Key} does not contain the key " +
-                                        $"`definition`. This value must be a string that matches a name in the " +
-                                        $"`definitions` object.");
-                                }
-                                if (nameActionPair.Value["definition"] is null 
-                                    || nameActionPair.Value["definition"]?.Type != JTokenType.String)
-                                {
-                                    throw new Exception($"Action {nameActionPair.Key} must be a string that matches " +
-                                        $"a name in the `definitions` object.");
-                                }
-                                // Forgiveness: the above if statement guarantees this string isn't null.
-                                if (!actionDefinitions.ContainsKey((string)nameActionPair.Value["definition"]!))
-                                {
-                                    throw new Exception($"Action {nameActionPair.Key} must match a name in the " +
-                                        $"`definitions` object.");
-                                }
-                            }
-                            actions.Update(repoIdelConfig.Actions);
-                        }
-                    }
-
-                    foreach(var nameActionPair in actions)
-                    {
-                        // Forgiveness: we guaranteed this exists above.
-                        IdelActionDefinition definition = actionDefinitions[(string)nameActionPair.Value["definition"]!];
-                        Dictionary<string, object> formatInfo = new ()
-                        {
-                            ["request"] = request,
-                            ["action"] = nameActionPair.Value,
-                            ["name"] = nameActionPair.Key,
-                            ["definition"] = definition,
-                        };
-
-                        // Hacking the output formatter to format these values for us.
-                        // Here, we get FnMatches.
-                        OutputFormatter formatter = new();
-                        OutputData data = new(0, formatInfo);
-                        string[] fnMatches = formatter.GetOutput(data, definition.FnMatches).Trim().Split(
-                            new string[] { "\r\n", "\r", "\n" },
-                            StringSplitOptions.None
-                        );
-                        Matcher matcher = new();
-                        foreach (string fnmatch in fnMatches)
-                        {
-                            matcher.AddInclude(fnmatch.TrimStart());
-                        }
-                        if (!matcher.Match(request.RelativePath).HasMatches)
-                        {
-                            continue;
-                        }
-
-                        int priority = definition.Priority;
-                        string command;
-                        if (OperatingSystem.IsWindows() && definition.BatchCommand != null)
-                        {
-                            command = formatter.GetOutput(data, definition.BatchCommand);
-                        }
-                        else if (definition.BashCommand != null)
-                        {
-                            command = formatter.GetOutput(data, definition.BatchCommand);
-                        }
-                        else
-                        {
-                            throw new ArgumentException(
-                                $"Either `batchCommand` or `batchCommand` must be " +
-                                $"specified for action {nameActionPair.Key}.");
-                        }
-                        string title = formatter.GetOutput(data, definition.Title);
-                        string description = formatter.GetOutput(data, definition.Description);
-                        IconResult icon = new(null, "");
-                        IconResult iconSecondary = new(null, "");
-                        if (definition.Icon is not null)
-                        {
-                            icon = IconUtils.FetchIcon(formatter.GetOutput(data, definition.Icon));
-                        }
-                        if (definition.IconSecondary is not null)
-                        {
-                            iconSecondary = IconUtils.FetchIcon(formatter.GetOutput(data, definition.IconSecondary));
-                        }
-                        completedActions.Add(new IdelAction(
-                            priority: priority,
-                            command: command,
-                            title: title,
-                            description: description,
-                            iconSource: icon.Path,
-                            iconSecondarySource: iconSecondary.Path
-                        )
-                        {
-                            Icon = icon.Icon,
-                            IconSecondary = iconSecondary.Icon,
-                            CommandWorkingDirectory = request.RepoConfig.Root,
-                        });
-                    }
-                    Directory.SetCurrentDirectory(prevCwd);
+                    completedActions.AddRange(await GetActionsForFile(repoIdelConfigPath, request));
+                    completedActions.AddRange(await GetActionsForFile(userIdelConfigPath, request));
+                    completedActions.AddRange(await GetActionsForFile(globalIdelConfigPath, request));
                 }
             }
 
