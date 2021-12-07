@@ -79,27 +79,17 @@ namespace CoreAPI.RemoteHosts
 
             List<Task> getAllSwarmUrlTasks = new();
 
-            (string swarmUrl, List<string> roots)[] swarmToClients = new (string swarmUrl, List<string> roots)[logins.Count];
             for (int i = 0; i < logins.Count; i++)
             {
                 (string port, string username) = logins[i];
-                string? url = await GetSwarmUrl(port, username);
-                List<string> clientRoots = await GetClientRootsForServer(port, username);
-                if (url is null)
+                string? swarmUrl = await GetSwarmUrl(port, username);
+                if (swarmUrl is null)
                 {
                     continue;
                 }
-                swarmToClients[i] = (url, clientRoots);
-            }
+                List<string> clientRoots = await GetClientRootsForServer(port, username);
 
-            for (int i = 0; i < logins.Count; i++)
-            {
-                string swarmUrl = swarmToClients[i].swarmUrl;
-                List<string> clients = swarmToClients[i].roots;
-                string port = logins[i].port;
-                string username = logins[i].username;
-
-                foreach(string client in clients)
+                foreach(string client in clientRoots)
                 {
                     if (FileUtils.IsWithinPath(client, localRepoRoot))
                     {
