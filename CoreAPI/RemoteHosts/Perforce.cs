@@ -124,14 +124,12 @@ namespace CoreAPI.RemoteHosts
                 throw new Exception("Unable to get remote links for Perforce clients that do not use streams.");
             }
 
-            string streamDepotPath = stream.Replace("//", "/");
-
             Uri returnValue = new(
                 Path.Combine(
                     repoConfig.RemoteRootUrl, 
                     "files", 
-                    streamDepotPath.Replace("//", ""), 
-                    actualPath
+                    stream.Replace("//", ""), 
+                    actualPath.Replace('\\', '/')
             ));
 
             if (request.StartLine is not null)

@@ -27,6 +27,7 @@ namespace CoreAPI.Icons
                 ret = ico.ToBitmap();
                 if (shouldCache)
                 {
+                    Directory.CreateDirectory(Path.GetDirectoryName(outPath));
                     ret.Save(outPath);
                 }
             }
