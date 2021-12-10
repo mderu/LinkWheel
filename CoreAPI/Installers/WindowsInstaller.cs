@@ -183,7 +183,7 @@ namespace CoreAPI.Installers
                     continue;
                 }
                 string[] prevArgs = CliUtils.CommandLineToArgs(prevCmdline);
-                Regex endsWithLinkWheelExe = new("linkWheelExe\"$", RegexOptions.IgnoreCase);
+                Regex endsWithLinkWheelExe = new(@"linkWheel\.exe""?$", RegexOptions.IgnoreCase);
                 if (endsWithLinkWheelExe.IsMatch(prevArgs[0]))
                 {
                     // If a previous version of LinkWheel is already installed, update the string in case the path
