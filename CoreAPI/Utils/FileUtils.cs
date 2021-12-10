@@ -128,13 +128,18 @@ namespace CoreAPI.Utils
             return string.Equals(Path.GetFullPath(pathA), Path.GetFullPath(pathB), comparison);
         }
 
-        public static bool IsWithinPath(string parentPath, string potentialChildPath)
+        public static bool IsWithinPath(string parentDirectory, string potentialChildPath)
         {
-            Uri parentUri = new(Path.GetFullPath(parentPath), UriKind.Absolute);
+            // Always assume parentPath is a directory
+            if (!parentDirectory.EndsWith('/') || (OperatingSystem.IsWindows() && parentDirectory.EndsWith('\\')))
+            {
+                parentDirectory += '/';
+            }
+            Uri parentUri = new(Path.GetFullPath(parentDirectory), UriKind.Absolute);
             Uri childUri = new(Path.GetFullPath(potentialChildPath), UriKind.Absolute);
 
             Uri relUri = parentUri.MakeRelativeUri(childUri);
-            return !(relUri.IsAbsoluteUri || relUri.ToString().StartsWith(".."));
+            return !Path.IsPathRooted(relUri.ToString()) && !relUri.ToString().StartsWith("..");
         }
 
         public static string GetFullNormalizedPath(string inPath)
