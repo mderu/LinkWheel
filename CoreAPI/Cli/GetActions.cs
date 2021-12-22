@@ -16,11 +16,16 @@ using Microsoft.Extensions.FileSystemGlobbing;
 
 namespace CoreAPI.Cli
 {
-    [Verb("get-actions")]
+    [Verb("get-actions", HelpText = HelpText)]
     public class GetActions
     {
         [Option("url", Required = true)]
         public string Url { get; set; } = "";
+
+        public const string HelpText = "Returns a JSON object containing the actions that are " +
+            "defined within all relevant .idelconfig files. If you would like to receive a " +
+            "specific value or object, consider using the global `--format` flag along with " +
+            "JSONPath string.";
 
         [Value(0)]
         public IEnumerable<string> BrowserArgs { get; set; } = new List<string>();
@@ -39,9 +44,10 @@ namespace CoreAPI.Cli
             Dictionary<string, JObject> actions = new();
             List<IdelAction> completedActions = new();
 
-            string prevCwd = Directory.GetCurrentDirectory();
+            string prevWd = Directory.GetCurrentDirectory();
             // Forgiveness: filePath is always a file.
-            Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath)!);
+            string currentWd = Path.GetDirectoryName(filePath)!;
+            Directory.SetCurrentDirectory(currentWd);
             if (File.Exists(idelConfigPath))
             {
                 IdelConfig? repoIdelConfig = JsonConvert.DeserializeObject<IdelConfig>(
@@ -151,10 +157,10 @@ namespace CoreAPI.Cli
                 {
                     Icon = icon.Icon,
                     IconSecondary = iconSecondary.Icon,
-                    CommandWorkingDirectory = request.RepoConfig.Root,
+                    CommandWorkingDirectory = currentWd,
                 });
             }
-            Directory.SetCurrentDirectory(prevCwd);
+            Directory.SetCurrentDirectory(prevWd);
             return completedActions;
         }
 
