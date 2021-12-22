@@ -157,7 +157,11 @@ namespace WinInstaller
                 {
                     CliUtils.SimpleInvoke($"code --uninstall-extension \"{VSCodeExtensionPath}\"", InstallPath);
                 }
-                Directory.Delete(Path.GetDirectoryName(VSCodeExtensionPath), recursive: true);
+                string dirToDel = Path.GetDirectoryName(VSCodeExtensionPath);
+                if (Directory.Exists(dirToDel))
+                {
+                    Directory.Delete(Path.GetDirectoryName(VSCodeExtensionPath), recursive: true);
+                }
             }
             if (visualStudioCheckbox.Checked)
             {
@@ -174,7 +178,10 @@ namespace WinInstaller
                     var unzipDir = Path.Combine(InstallPath, "vs");
                     CliUtils.SimpleInvoke("VSIXInstaller.exe /u:\"LinkWheelVS.f3989fa1-d90e-4d10-9c49-24c2fbfcbcba\"",
                         Path.GetDirectoryName(devEnvPath));
-                    Directory.Delete(unzipDir, recursive: true);
+                    if (Directory.Exists(unzipDir))
+                    {
+                        Directory.Delete(unzipDir, recursive: true);
+                    }
                 }
             }
             if (linkWheelCheckbox.Checked)
