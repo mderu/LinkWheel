@@ -3,7 +3,6 @@ using System.Windows.Forms;
 using CommandLine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using CoreAPI.Config;
 using CoreAPI.Installers;
 using CoreAPI.Utils;
 using LinkWheel.Cli;
@@ -18,7 +17,7 @@ namespace LinkWheel
     static class Program
     {
         /// <summary>
-        ///  The main entry point for the application.
+        /// The main entry point for the application.
         /// </summary>
         [STAThread]
         public static int Main()
