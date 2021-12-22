@@ -127,7 +127,7 @@ namespace WinInstaller
                 {
                     Directory.Delete(GlobalConfigResourcesDir, recursive: true);
                 }
-                UnpackResource(Resources.ideld, GlobalConfigResourcesDir);
+                UnpackResource(Resources.ideld, Path.GetDirectoryName(GlobalConfigResourcesDir));
                 if (File.Exists(GlobalConfigPath))
                 {
                     File.Delete(GlobalConfigPath);
