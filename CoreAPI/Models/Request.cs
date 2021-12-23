@@ -4,6 +4,9 @@ using System;
 
 namespace CoreAPI.Models
 {
+    /// <summary>
+    /// A class containing a remote URL and the subsequent resolved local file information.
+    /// </summary>
     public class Request
     {
         [JsonProperty("url")]
