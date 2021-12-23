@@ -37,10 +37,9 @@ namespace CoreAPI.Cli
             return new OutputData(0, new() { ["actions"] = actions }, "(=actions=)");
         }
 
-        private async Task<List<IdelAction>> GetActionsForFile(string filePath, Request request)
+        private async Task<List<IdelAction>> GetActionsForFile(string filePath, Request request, Dictionary<string, IdelActionDefinition> actionDefinitions)
         {
             string idelConfigPath = filePath;
-            Dictionary<string, IdelActionDefinition> actionDefinitions = new();
             Dictionary<string, JObject> actions = new();
             List<IdelAction> completedActions = new();
 
@@ -181,9 +180,13 @@ namespace CoreAPI.Cli
                     string userIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".user.idelconfig");
                     string globalIdelConfigPath = Path.Combine(LinkWheelConfig.DataDirectory, ".idelconfig");
 
-                    completedActions.AddRange(await GetActionsForFile(repoIdelConfigPath, request));
-                    completedActions.AddRange(await GetActionsForFile(userIdelConfigPath, request));
-                    completedActions.AddRange(await GetActionsForFile(globalIdelConfigPath, request));
+                    Dictionary<string, IdelActionDefinition> culumulativeActionDefinitions = new();
+                    Dictionary<string, IdelActionDefinition> tempDefinitions = new();
+
+                    completedActions.AddRange(await GetActionsForFile(globalIdelConfigPath, request, culumulativeActionDefinitions));
+                    completedActions.AddRange(await GetActionsForFile(repoIdelConfigPath, request, tempDefinitions));
+                    culumulativeActionDefinitions.Update(tempDefinitions);
+                    completedActions.AddRange(await GetActionsForFile(userIdelConfigPath, request, culumulativeActionDefinitions));
                 }
             }
 
