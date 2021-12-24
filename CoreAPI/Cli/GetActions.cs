@@ -37,6 +37,22 @@ namespace CoreAPI.Cli
             return new OutputData(0, new() { ["actions"] = actions }, "(=actions=)");
         }
 
+        private void FormatEntries(JObject jObject, OutputData outputData)
+        {
+            OutputFormatter formatter = new();
+            foreach (var kvp in jObject)
+            {
+                if (kvp.Value is JObject childObject)
+                {
+                    FormatEntries(childObject, outputData);
+                }
+                else if (kvp.Value?.Type == JTokenType.String)
+                {
+                    jObject[kvp.Key] = formatter.GetOutput(outputData, (string?)kvp.Value);
+                }
+            }
+        }
+
         private async Task<List<IdelAction>> GetActionsForFile(string filePath, Request request, Dictionary<string, IdelActionDefinition> actionDefinitions)
         {
             string idelConfigPath = filePath;
@@ -91,18 +107,22 @@ namespace CoreAPI.Cli
             {
                 // Forgiveness: we guaranteed this exists above.
                 IdelActionDefinition definition = actionDefinitions[(string)nameActionPair.Value["definition"]!];
+
+
+                OutputFormatter formatter = new();
                 Dictionary<string, object> formatInfo = new()
                 {
                     ["request"] = request,
-                    ["action"] = nameActionPair.Value,
                     ["name"] = nameActionPair.Key,
                     ["definition"] = definition,
                 };
+                OutputData data = new(0, formatInfo);
+                FormatEntries(nameActionPair.Value, data);
+
+                formatInfo["action"] = nameActionPair.Value;
 
                 // Hacking the output formatter to format these values for us.
                 // Here, we get FnMatches.
-                OutputFormatter formatter = new();
-                OutputData data = new(0, formatInfo);
                 string[] fnMatches = formatter.GetOutput(data, definition.FnMatches).Trim().Split(
                     new string[] { "\r\n", "\r", "\n" },
                     StringSplitOptions.None
@@ -112,7 +132,7 @@ namespace CoreAPI.Cli
                 {
                     matcher.AddInclude(fnmatch.TrimStart());
                 }
-                if (!matcher.Match(request.RelativePath).HasMatches)
+                if (!matcher.Match(request.File).HasMatches)
                 {
                     continue;
                 }

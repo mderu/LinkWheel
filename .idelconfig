@@ -127,9 +127,10 @@
             definition: "vscode",
             
             // Everything else is the wild west: can be anything and everything. Data here
-            // can be used in the definition.
-            fnmatch: "LinkWheel/Extensions/VSCode/**",
-            workspacePath: "./Extensions/VSCode/codelink/vscode-ext.code-workspace"
+            // can be used in the definition. Note that JSONPath queries cannot resolve
+            // `action`, but `request`, `name`, and `definition` are all present.
+            fnmatch: "Extensions/VSCode/**/*",
+            workspacePath: "./Extensions/VSCode/codelink/vscode-ext.code-workspace",
         },
         openInVisualStudio: {
             // Required: The name of the definition to model the action after.
@@ -142,7 +143,7 @@
                 **/*.csproj
                 **/*.sln
             ",
-            workspacePath: "./Extensions/VSCode/codelink/vscode-ext.code-workspace"
+            workspacePath: "./Extensions/VSCode/codelink/vscode-ext.code-workspace",
         },
         openInDefaultEditor: {
             definition: "openInDefaultEditor",

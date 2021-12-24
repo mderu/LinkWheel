@@ -26,9 +26,6 @@ namespace CoreAPI.Models
                 // If the operating system is Windows, we normalize the directory separators to be backslashes.
                 // This is done so that some ancient commands in Windows (e.g., C:\Windows\explorer.exe), can
                 // still operate on these files.
-                //
-                // If this ends up being an issue, we should move this functionality to another property,
-                // e.g., fileNormalized.
                 if (OperatingSystem.IsWindows())
                 {
                     return File.Replace("/", "\\");
