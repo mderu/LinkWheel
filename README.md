@@ -1,7 +1,7 @@
 # LinkWheel
 
 LinkWheel is a tool that intercepts links to remote repository websites (such
-as GitHub, GitLab, or Perforce), and offers the user the ability to access 
+as GitHub, GitLab, or Helix Swarm), and offers the user the ability to access 
 their local copy of those files directly through different actions. With the
 default global configuration, users are given the options to either open the
 link in their browser, reveal the file in their file explorer, open the file
