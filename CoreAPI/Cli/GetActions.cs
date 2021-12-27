@@ -13,6 +13,7 @@ using CoreAPI.Models;
 using Newtonsoft.Json.Linq;
 using CoreAPI.Utils;
 using Microsoft.Extensions.FileSystemGlobbing;
+using System.Linq;
 
 namespace CoreAPI.Cli
 {
@@ -132,7 +133,7 @@ namespace CoreAPI.Cli
                 {
                     matcher.AddInclude(fnmatch.TrimStart());
                 }
-                if (!matcher.Match(request.File).HasMatches)
+                if (!matcher.Match(request.RepoConfig.Root, request.File).HasMatches)
                 {
                     continue;
                 }
@@ -165,13 +166,19 @@ namespace CoreAPI.Cli
                 {
                     iconSecondary = IconUtils.FetchIcon(formatter.GetOutput(data, definition.IconSecondary));
                 }
+                ActionSource source = new()
+                {
+                    File = filePath,
+                    Name = nameActionPair.Key
+                };
                 completedActions.Add(new IdelAction(
                     priority: priority,
                     command: command,
                     title: title,
                     description: description,
                     iconSource: icon.Path,
-                    iconSecondarySource: iconSecondary.Path
+                    iconSecondarySource: iconSecondary.Path,
+                    source: source
                 )
                 {
                     Icon = icon.Icon,
@@ -196,9 +203,9 @@ namespace CoreAPI.Cli
                     // Forgiveness: if the try passes, it isn't null.
                     Request request = unforgivenRequest!;
 
+                    string globalIdelConfigPath = Path.Combine(LinkWheelConfig.DataDirectory, ".idelconfig");
                     string repoIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".idelconfig");
                     string userIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".user.idelconfig");
-                    string globalIdelConfigPath = Path.Combine(LinkWheelConfig.DataDirectory, ".idelconfig");
 
                     Dictionary<string, IdelActionDefinition> culumulativeActionDefinitions = new();
                     Dictionary<string, IdelActionDefinition> tempDefinitions = new();
@@ -207,6 +214,7 @@ namespace CoreAPI.Cli
                     completedActions.AddRange(await GetActionsForFile(repoIdelConfigPath, request, tempDefinitions));
                     culumulativeActionDefinitions.Update(tempDefinitions);
                     completedActions.AddRange(await GetActionsForFile(userIdelConfigPath, request, culumulativeActionDefinitions));
+                    completedActions = completedActions.GroupBy(action => action.Source?.Name ?? "").Select(list => list.Last()).ToList();
                 }
             }
 
