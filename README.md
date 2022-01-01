@@ -115,7 +115,12 @@ lines.
 
 ## Known Issues:
 
-* For JSONPath queries, `@.length` isn't supported. This is a 
+* **Links aren't intercepted after installing a new browser and setting it as
+    default.** The fix here is to simply install LinkWheel again. Due to the
+    way Windows control over the default browser, there isn't a great way
+    around this.
+
+* **For JSONPath queries, `@.length` isn't supported.** This is a 
   [missing feature](https://github.com/JamesNK/Newtonsoft.Json/issues/1318) in
   Newtonsoft.Json. If you'd like to fix that, please fix it upstream within
   that project.
