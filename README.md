@@ -1,4 +1,6 @@
-# LinkWheel
+# <img src="https://raw.githubusercontent.com/mderu/LinkWheel/master/LinkWheel/linkWheelIcon.ico" alt="" data-canonical-src="https://raw.githubusercontent.com/mderu/LinkWheel/master/LinkWheel/linkWheelIcon.ico" width="25" height="25" /> LinkWheel
+
+
 
 LinkWheel is a tool that intercepts links to remote repository websites (such
 as GitHub, GitLab, or Helix Swarm), and offers the user the ability to access 
