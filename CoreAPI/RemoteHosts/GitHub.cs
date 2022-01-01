@@ -28,8 +28,8 @@ namespace CoreAPI.RemoteHosts
                 }
             }
 
-            // Verify that the URL kind of looks like a GitHub-hosted project URL.
-            if (!(requestedParts[3] == "blob" || requestedParts[3] == "tree"))
+            // Exit early if the URL does not look like a file hosted on GitHub (i.e., link to a non-file).
+            if (requestedParts.Length < 4 || !(requestedParts[3] == "blob" || requestedParts[3] == "tree"))
             {
                 return Task.FromResult<(bool, Request?)>((false, null));
             }
