@@ -39,6 +39,7 @@ namespace WinInstaller
             this.uninstallButton = new System.Windows.Forms.Button();
             this.globalConfigCheckbox = new System.Windows.Forms.CheckBox();
             this.englishToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.statusLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // vscodeCheckbox
@@ -101,7 +102,7 @@ namespace WinInstaller
             this.installButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.installButton.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.installButton.ForeColor = System.Drawing.SystemColors.InfoText;
-            this.installButton.Location = new System.Drawing.Point(40, 179);
+            this.installButton.Location = new System.Drawing.Point(40, 218);
             this.installButton.Margin = new System.Windows.Forms.Padding(10, 10, 10, 5);
             this.installButton.Name = "installButton";
             this.installButton.Size = new System.Drawing.Size(181, 37);
@@ -117,7 +118,7 @@ namespace WinInstaller
             this.uninstallButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.uninstallButton.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.uninstallButton.ForeColor = System.Drawing.SystemColors.InfoText;
-            this.uninstallButton.Location = new System.Drawing.Point(40, 226);
+            this.uninstallButton.Location = new System.Drawing.Point(40, 265);
             this.uninstallButton.Margin = new System.Windows.Forms.Padding(10, 5, 10, 10);
             this.uninstallButton.Name = "uninstallButton";
             this.uninstallButton.Size = new System.Drawing.Size(181, 37);
@@ -139,12 +140,22 @@ namespace WinInstaller
             this.englishToolTip.SetToolTip(this.globalConfigCheckbox, resources.GetString("globalConfigCheckbox.ToolTip"));
             this.globalConfigCheckbox.UseVisualStyleBackColor = true;
             // 
+            // statusLabel
+            // 
+            this.statusLabel.ForeColor = System.Drawing.SystemColors.MenuHighlight;
+            this.statusLabel.Location = new System.Drawing.Point(12, 166);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(242, 42);
+            this.statusLabel.TabIndex = 8;
+            this.statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // InstallForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(16)))), ((int)(((byte)(16)))), ((int)(((byte)(16)))));
-            this.ClientSize = new System.Drawing.Size(266, 278);
+            this.ClientSize = new System.Drawing.Size(266, 317);
+            this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.globalConfigCheckbox);
             this.Controls.Add(this.uninstallButton);
             this.Controls.Add(this.installButton);
@@ -173,6 +184,7 @@ namespace WinInstaller
         private System.Windows.Forms.Button uninstallButton;
         private System.Windows.Forms.CheckBox globalConfigCheckbox;
         private System.Windows.Forms.ToolTip englishToolTip;
+        private System.Windows.Forms.Label statusLabel;
     }
 }
 
