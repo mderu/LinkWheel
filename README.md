@@ -60,9 +60,9 @@ configuration yourself, the default global configuration is a good default.
 Then, follow along with any installers that are opened. Installation is
 complete when a dialog box appears that tells you to close the installer.
 
-In order for these LinkWheel to work, we first need to register the location of
-the repositories you have locally. If you intend on using the IDE extensions,
-skip to those instructions below. 
+In order for LinkWheel to work, we first need to register the location of the
+repositories you have locally. If you intend on using the IDE extensions, skip
+to those instructions below.
 
 You can register repos by opening LinkWheel directly, and then right-click the
 LinkWheel System Tray Icon and click `Register Repo`. If you prefer to use
