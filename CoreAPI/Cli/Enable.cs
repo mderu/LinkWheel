@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace CoreAPI.Cli
 {
-    [Verb("enable")]
+    [Verb("enable", HelpText = HelpText)]
     public class Enable
     {
+        public const string HelpText = "Enables LinkWheel after it has been disabled. See `disable`.";
         public Task<OutputData> ExecuteAsync()
         {
             if (OperatingSystem.IsWindows())

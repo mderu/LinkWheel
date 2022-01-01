@@ -6,6 +6,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>linkWheelIcon.ico</ApplicationIcon>
     <StartupObject />
+    <Version>0.1.0.6</Version>
   </PropertyGroup>
 
   <ItemGroup>

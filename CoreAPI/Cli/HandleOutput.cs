@@ -6,10 +6,11 @@ namespace CoreAPI.Cli
     [Verb("handle-output")]
     public class HandleOutput
     {
-        [Option("format")]
+        [Option("format", HelpText = "Format you wish to have your output rendered in.")]
         public string? Format { get; set; } = null;
 
-        [Option("output-delimiter")]
+        [Option("output-delimiter", HelpText = "If the expression returned is multiple objects, " +
+            "the string value to place between them (e.g., a comma, space, or newline)")]
         public string? OutputDelimiter { get; set; }
 
         [Option("oas", HelpText = "Output Array Start. The character(s) to output at the beginning of a returned array")]

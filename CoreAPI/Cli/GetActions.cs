@@ -28,7 +28,8 @@ namespace CoreAPI.Cli
             "specific value or object, consider using the global `--format` flag along with " +
             "JSONPath string.";
 
-        [Value(0)]
+        [Value(0, HelpText = "The exact arguments to open this URL in your browser. If unset " +
+            "set, the arguments will be fetched from the operating system's defaults.")]
         public IEnumerable<string> BrowserArgs { get; set; } = new List<string>();
 
         public async Task<OutputData> ExecuteAsync()
@@ -219,6 +220,13 @@ namespace CoreAPI.Cli
             }
 
             IconResult browserIcon = IconUtils.DefaultBrowserIcon;
+
+            // If BrowserArgs were not passed, fill them in from the OS-defined values.
+            if (!BrowserArgs.Any())
+            {
+                BrowserArgs = (string[])(await new GetBrowserArgs() { Url = Url }.ExecuteAsync()).Objects["array"];
+            }
+
             // Special case pass-through websites: don't bother trying to grab icons if they are unrelated to your repos.
             // We do this so we don't make all non-repo links slower to open (e.g., YouTube, Drive, Facebook, Amazon, etc).
             // The case where this is particularly bad is where the website linked to is slow or dead, and it eventually

@@ -11,9 +11,11 @@ using TextCopy;
 
 namespace CoreAPI.Cli
 {
-    [Verb("serve-clipboard")]
+    [Verb("serve-clipboard", HelpText = HelpText)]
     public class ServeClipboard
     {
+        public const string HelpText = "Opens up LinkWheel using the URL stored in your clipboard (if applicable).";
+
         public async Task<OutputData> ExecuteAsync()
         {
             string? clipboardContents = await ClipboardService.GetTextAsync();

@@ -12,13 +12,14 @@ namespace CoreAPI.Cli
     [Verb("get-root", HelpText = HelpText)]
     public class GetRoot
     {
-        [Option("path", Required = true)]
-        public string Path { get; set; } = "";
-
         public const string HelpText = "Returns the root repo directory for the given path. " +
             "Note that if multiple matches exist (e.g., you have nested repositories, like a Git " +
             "repo stored within a Perforce repo), an error message is returned. You can still " +
             "get the available paths by using the global `--format` flag.";
+
+        [Option("path", Required = true, 
+            HelpText = "The path of a file or directory you wish to find the repo root of.")]
+        public string Path { get; set; } = "";
 
         public async Task<OutputData> ExecuteAsync()
         {

@@ -10,12 +10,12 @@ namespace CoreAPI.Cli
     [Verb("get-registration", HelpText = HelpText)]
     public class GetRegistration
     {
-        [Option("path", Required = true)]
-        public string Path { get; set; } = "";
-
-        public const string HelpText = 
+        public const string HelpText =
             "If the given path is registered, writes the registered RepoConfig and return code 0. " +
             "Otherwise, returns 1.";
+
+        [Option("path", Required = true, HelpText = "The path (or file) to check whether or not it is registered.")]
+        public string Path { get; set; } = "";
 
         public async Task<OutputData> ExecuteAsync()
         {

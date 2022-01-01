@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using CoreAPI.Cli;
 using System.Linq;
 using CoreAPI.OutputFormat;
+using CommandLine.Text;
+using System.Text.RegularExpressions;
+using System.Reflection;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
@@ -14,6 +17,18 @@ namespace LinkWheel
 {
     static class Program
     {
+        private static Task<OutputData> DisplayHelp<T>(ParserResult<T> result)
+        {
+            var helpText = HelpText.AutoBuild(result, h =>
+            {
+                h.Heading = "LinkWheelCli.exe " + Assembly.GetExecutingAssembly().GetName().Version;
+                h.Copyright = "https://github.com/mderu/LinkWheel";
+                h.AdditionalNewLineAfterOption = false;
+                return h;
+            });
+            return Task.FromResult(new OutputData(1, new(), helpText));
+        }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -38,10 +53,13 @@ namespace LinkWheel
                     errs => null);
 
             var parser = new Parser(settings => settings.EnableDashDash = true);
-            OutputData result = Task.Run(() => parser
-                .ParseArguments<
+            OutputData result = Task.Run(() =>
+            {
+                var parsedArguments = parser.ParseArguments<
                         Disable,
                         Enable,
+                        GetActions,
+                        GetBrowserArgs,
                         GetRoot,
                         GetUrl,
                         Install,
@@ -49,12 +67,13 @@ namespace LinkWheel
                         OpenInDefaultBrowser,
                         RegisterRepo,
                         ServeClipboard,
-                        GetActions,
                         Uninstall
-                    >(args[argStart..])
-                .MapResult(
+                    >(args[argStart..]);
+                return parsedArguments.MapResult(
                     (Disable verb) => verb.ExecuteAsync(),
                     (Enable verb) => verb.ExecuteAsync(),
+                    (GetActions verb) => verb.ExecuteAsync(),
+                    (GetBrowserArgs verb) => verb.ExecuteAsync(),
                     (GetRoot verb) => verb.ExecuteAsync(),
                     (GetUrl verb) => verb.ExecuteAsync(),
                     (Install verb) => verb.ExecuteAsync(),
@@ -62,10 +81,10 @@ namespace LinkWheel
                     (OpenInDefaultBrowser verb) => verb.ExecuteAsync(),
                     (ServeClipboard verb) => verb.ExecuteAsync(),
                     (RegisterRepo verb) => verb.ExecuteAsync(),
-                    (GetActions verb) => verb.ExecuteAsync(),
                     (Uninstall verb) => verb.ExecuteAsync(),
-                    errs => Task.FromResult(new OutputData(1, new(), "Unable to parse args."))
-                )).ConfigureAwait(false).GetAwaiter().GetResult();
+                    errs => DisplayHelp(parsedArguments));
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+
             Console.WriteLine(outputFormatter.GetOutput(result));
             return result.ExitCode;
         }
