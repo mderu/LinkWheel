@@ -18,8 +18,15 @@ namespace CoreAPI.RemoteHosts
     {
         public override async Task<(bool, Request?)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig)
         {
-            string[] requestedParts = remoteUri.PathAndQuery.Split("#")[0].Split("?")[0].Split('/');
-            string[] configuredParts = new Uri(repoConfig.RemoteRootUrl).PathAndQuery.Split('/');
+            string[] requestedParts = 
+                remoteUri.PathAndQuery
+                    .Split("#")[0]
+                    .Split("?")[0]
+                    // Empty entries are removed because Swarm accepts any number of slashes after "/files/"
+                    .Split('/', StringSplitOptions.RemoveEmptyEntries);
+            string[] configuredParts = 
+                new Uri(repoConfig.RemoteRootUrl).PathAndQuery
+                    .Split('/', StringSplitOptions.RemoveEmptyEntries);
 
             int partIndex;
             for (partIndex = 0; partIndex < configuredParts.Length; partIndex++)
