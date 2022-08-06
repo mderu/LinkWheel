@@ -7,9 +7,12 @@ using System.Threading.Tasks;
 
 namespace CoreAPI.Cli
 {
-    [Verb("disable")]
+    [Verb("disable", HelpText = HelpText)]
     public class Disable
     {
+        public const string HelpText = "Disables LinkWheel from intercepting links, but otherwise stays installed."
+            + " Useful for checking whether or not a program is trying to open a link, but LinkWheel is crashing.";
+
         public Task<OutputData> ExecuteAsync()
         {
             if (OperatingSystem.IsWindows())

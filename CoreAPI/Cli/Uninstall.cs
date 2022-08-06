@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace LinkWheel.Cli
 {
-    [Verb("uninstall")]
+    [Verb("uninstall", HelpText = HelpText)]
     public class Uninstall
     {
+        public const string HelpText = "Uninstalls LinkWheel, and removes it from your system path.";
         public Task<OutputData> ExecuteAsync()
         {
             if (OperatingSystem.IsWindows())

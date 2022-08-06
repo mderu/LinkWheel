@@ -77,12 +77,14 @@ namespace WinInstaller
         {
             if (linkWheelCheckbox.Checked)
             {
+                statusLabel.Text = "Installing LinkWheel executables";
                 WipeInstallDirectory();
                 UnpackResource(Resources.LinkWheelZip, InstallPath);
                 CliUtils.SimpleInvoke("linkWheelCli.exe install", InstallPath);
             }
             if (visualStudioCheckbox.Checked)
             {
+                statusLabel.Text = "Installing Visual Studio Plugin (Check Taskbar)";
                 if (!FileUtils.TryGetInstalledExe("devenv.exe", out string devEnvPath))
                 {
                     MessageBox.Show(
@@ -104,6 +106,7 @@ namespace WinInstaller
             }
             if (vscodeCheckbox.Checked)
             {
+                statusLabel.Text = "Installing VS Code extension";
                 if (!FileUtils.TryGetInstalledExe("code.cmd", out string outString))
                 {
                     MessageBox.Show(
@@ -123,11 +126,12 @@ namespace WinInstaller
             }
             if (globalConfigCheckbox.Checked)
             {
+                statusLabel.Text = "Installing the default global config";
                 if (Directory.Exists(GlobalConfigResourcesDir))
                 {
                     Directory.Delete(GlobalConfigResourcesDir, recursive: true);
                 }
-                UnpackResource(Resources.ideld, GlobalConfigResourcesDir);
+                UnpackResource(Resources.ideld, Path.GetDirectoryName(GlobalConfigResourcesDir));
                 if (File.Exists(GlobalConfigPath))
                 {
                     File.Delete(GlobalConfigPath);
@@ -135,6 +139,7 @@ namespace WinInstaller
                 File.WriteAllText(GlobalConfigPath, Resources.idelconfig);
             }
 
+            statusLabel.Text = "Installation complete";
             MessageBox.Show("Installation complete. You may now close the installer.");
         }
 
@@ -142,6 +147,7 @@ namespace WinInstaller
         {
             if (vscodeCheckbox.Checked)
             {
+                statusLabel.Text = "Uninstalling VS Code extension";
                 if (!FileUtils.TryGetInstalledExe("code.cmd", out string outString))
                 {
                     MessageBox.Show(
@@ -157,10 +163,15 @@ namespace WinInstaller
                 {
                     CliUtils.SimpleInvoke($"code --uninstall-extension \"{VSCodeExtensionPath}\"", InstallPath);
                 }
-                Directory.Delete(Path.GetDirectoryName(VSCodeExtensionPath), recursive: true);
+                string dirToDel = Path.GetDirectoryName(VSCodeExtensionPath);
+                if (Directory.Exists(dirToDel))
+                {
+                    Directory.Delete(Path.GetDirectoryName(VSCodeExtensionPath), recursive: true);
+                }
             }
             if (visualStudioCheckbox.Checked)
             {
+                statusLabel.Text = "Uninstalling Visual Studio extension";
                 if (!FileUtils.TryGetInstalledExe("devenv.exe", out string devEnvPath))
                 {
                     MessageBox.Show(
@@ -174,16 +185,21 @@ namespace WinInstaller
                     var unzipDir = Path.Combine(InstallPath, "vs");
                     CliUtils.SimpleInvoke("VSIXInstaller.exe /u:\"LinkWheelVS.f3989fa1-d90e-4d10-9c49-24c2fbfcbcba\"",
                         Path.GetDirectoryName(devEnvPath));
-                    Directory.Delete(unzipDir, recursive: true);
+                    if (Directory.Exists(unzipDir))
+                    {
+                        Directory.Delete(unzipDir, recursive: true);
+                    }
                 }
             }
             if (linkWheelCheckbox.Checked)
             {
+                statusLabel.Text = "Uninstalling LinkWheel executables";
                 CliUtils.SimpleInvoke("linkWheelCli.exe uninstall", InstallPath);
                 WipeInstallDirectory();
             }
             if (globalConfigCheckbox.Checked)
             {
+                statusLabel.Text = "Deleting global config and its resources";
                 if (Directory.Exists(GlobalConfigResourcesDir))
                 {
                     Directory.Delete(GlobalConfigResourcesDir, recursive: true);
@@ -194,6 +210,7 @@ namespace WinInstaller
                 }
             }
 
+            statusLabel.Text = "Uninstall complete";
             MessageBox.Show("Uninstall complete. You may now close the uninstaller.");
         }
 

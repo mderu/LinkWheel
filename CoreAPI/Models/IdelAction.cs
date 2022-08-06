@@ -9,6 +9,9 @@ namespace CoreAPI.Models
     /// </summary>
     public class IdelAction
     {
+        [JsonProperty]
+        public ActionSource? Source { get; set; } = null;
+
         [JsonProperty("priority")]
         public int Priority { get; set; }
         [JsonProperty("command")]
@@ -30,11 +33,12 @@ namespace CoreAPI.Models
 
     public IdelAction(
             int priority, 
-            string command, 
+            string command,
             string title = "", 
-            string description = "", 
+            string description = "",
             string? iconSource = null, 
-            string? iconSecondarySource = null)
+            string? iconSecondarySource = null,
+            ActionSource source = null)
         {
             Priority = priority;
             Command = command;
@@ -42,6 +46,16 @@ namespace CoreAPI.Models
             Description = description;
             IconSource = iconSource;
             IconSecondarySource = iconSecondarySource;
+            Source = source;
         }
+    }
+
+    public class ActionSource
+    {
+        [JsonProperty]
+        public string File { get; set; } = "";
+
+        [JsonProperty]
+        public string Name { get; set; } = "";
     }
 }

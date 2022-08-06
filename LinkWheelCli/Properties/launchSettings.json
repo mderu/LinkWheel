@@ -6,7 +6,7 @@
     },
     "GetActions": {
       "commandName": "Project",
-      "commandLineArgs": "get-actions --url  https://github.com/mderu/LinkWheel/blob/master/LinkWheelVSIX/CopyLink.cs#L97-L98 -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument https://github.com/mderu/LinkWheel/blob/master/LinkWheelVSIX/CopyLink.cs#L97-L98"
+      "commandLineArgs": "get-actions --url  https://github.com/mderu/LinkWheel/blob/master/LinkWheelVSIX/CopyLink.cs#L97-L98"
     },
     "GetUrl": {
       "commandName": "Project",
@@ -40,6 +40,14 @@
     "Enable": {
       "commandName": "Project",
       "commandLineArgs": "enable"
+    },
+    "Help": {
+      "commandName": "Project",
+      "commandLineArgs": "help get-url"
+    },
+    "OpenInDefaultBrowser": {
+      "commandName": "Project",
+      "commandLineArgs": "open-in-default-browser --url https://www.google.com"
     }
   }
 }

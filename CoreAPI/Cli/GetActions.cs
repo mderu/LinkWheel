@@ -13,16 +13,23 @@ using CoreAPI.Models;
 using Newtonsoft.Json.Linq;
 using CoreAPI.Utils;
 using Microsoft.Extensions.FileSystemGlobbing;
+using System.Linq;
 
 namespace CoreAPI.Cli
 {
-    [Verb("get-actions")]
+    [Verb("get-actions", HelpText = HelpText)]
     public class GetActions
     {
         [Option("url", Required = true)]
         public string Url { get; set; } = "";
 
-        [Value(0)]
+        public const string HelpText = "Returns a JSON object containing the actions that are " +
+            "defined within all relevant .idelconfig files. If you would like to receive a " +
+            "specific value or object, consider using the global `--format` flag along with " +
+            "JSONPath string.";
+
+        [Value(0, HelpText = "The exact arguments to open this URL in your browser. If unset " +
+            "set, the arguments will be fetched from the operating system's defaults.")]
         public IEnumerable<string> BrowserArgs { get; set; } = new List<string>();
 
         public async Task<OutputData> ExecuteAsync()
@@ -32,16 +39,32 @@ namespace CoreAPI.Cli
             return new OutputData(0, new() { ["actions"] = actions }, "(=actions=)");
         }
 
-        private async Task<List<IdelAction>> GetActionsForFile(string filePath, Request request)
+        private void FormatEntries(JObject jObject, OutputData outputData)
+        {
+            OutputFormatter formatter = new();
+            foreach (var kvp in jObject)
+            {
+                if (kvp.Value is JObject childObject)
+                {
+                    FormatEntries(childObject, outputData);
+                }
+                else if (kvp.Value?.Type == JTokenType.String)
+                {
+                    jObject[kvp.Key] = formatter.GetOutput(outputData, (string?)kvp.Value);
+                }
+            }
+        }
+
+        private async Task<List<IdelAction>> GetActionsForFile(string filePath, Request request, Dictionary<string, IdelActionDefinition> actionDefinitions)
         {
             string idelConfigPath = filePath;
-            Dictionary<string, IdelActionDefinition> actionDefinitions = new();
             Dictionary<string, JObject> actions = new();
             List<IdelAction> completedActions = new();
 
-            string prevCwd = Directory.GetCurrentDirectory();
+            string prevWd = Directory.GetCurrentDirectory();
             // Forgiveness: filePath is always a file.
-            Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath)!);
+            string currentWd = Path.GetDirectoryName(filePath)!;
+            Directory.SetCurrentDirectory(currentWd);
             if (File.Exists(idelConfigPath))
             {
                 IdelConfig? repoIdelConfig = JsonConvert.DeserializeObject<IdelConfig>(
@@ -86,18 +109,22 @@ namespace CoreAPI.Cli
             {
                 // Forgiveness: we guaranteed this exists above.
                 IdelActionDefinition definition = actionDefinitions[(string)nameActionPair.Value["definition"]!];
+
+
+                OutputFormatter formatter = new();
                 Dictionary<string, object> formatInfo = new()
                 {
                     ["request"] = request,
-                    ["action"] = nameActionPair.Value,
                     ["name"] = nameActionPair.Key,
                     ["definition"] = definition,
                 };
+                OutputData data = new(0, formatInfo);
+                FormatEntries(nameActionPair.Value, data);
+
+                formatInfo["action"] = nameActionPair.Value;
 
                 // Hacking the output formatter to format these values for us.
                 // Here, we get FnMatches.
-                OutputFormatter formatter = new();
-                OutputData data = new(0, formatInfo);
                 string[] fnMatches = formatter.GetOutput(data, definition.FnMatches).Trim().Split(
                     new string[] { "\r\n", "\r", "\n" },
                     StringSplitOptions.None
@@ -107,7 +134,7 @@ namespace CoreAPI.Cli
                 {
                     matcher.AddInclude(fnmatch.TrimStart());
                 }
-                if (!matcher.Match(request.RelativePath).HasMatches)
+                if (!matcher.Match(request.RepoConfig.Root, request.File).HasMatches)
                 {
                     continue;
                 }
@@ -140,21 +167,27 @@ namespace CoreAPI.Cli
                 {
                     iconSecondary = IconUtils.FetchIcon(formatter.GetOutput(data, definition.IconSecondary));
                 }
+                ActionSource source = new()
+                {
+                    File = filePath,
+                    Name = nameActionPair.Key
+                };
                 completedActions.Add(new IdelAction(
                     priority: priority,
                     command: command,
                     title: title,
                     description: description,
                     iconSource: icon.Path,
-                    iconSecondarySource: iconSecondary.Path
+                    iconSecondarySource: iconSecondary.Path,
+                    source: source
                 )
                 {
                     Icon = icon.Icon,
                     IconSecondary = iconSecondary.Icon,
-                    CommandWorkingDirectory = request.RepoConfig.Root,
+                    CommandWorkingDirectory = currentWd,
                 });
             }
-            Directory.SetCurrentDirectory(prevCwd);
+            Directory.SetCurrentDirectory(prevWd);
             return completedActions;
         }
 
@@ -171,17 +204,29 @@ namespace CoreAPI.Cli
                     // Forgiveness: if the try passes, it isn't null.
                     Request request = unforgivenRequest!;
 
+                    string globalIdelConfigPath = Path.Combine(LinkWheelConfig.DataDirectory, ".idelconfig");
                     string repoIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".idelconfig");
                     string userIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".user.idelconfig");
-                    string globalIdelConfigPath = Path.Combine(LinkWheelConfig.DataDirectory, ".idelconfig");
 
-                    completedActions.AddRange(await GetActionsForFile(repoIdelConfigPath, request));
-                    completedActions.AddRange(await GetActionsForFile(userIdelConfigPath, request));
-                    completedActions.AddRange(await GetActionsForFile(globalIdelConfigPath, request));
+                    Dictionary<string, IdelActionDefinition> culumulativeActionDefinitions = new();
+                    Dictionary<string, IdelActionDefinition> tempDefinitions = new();
+
+                    completedActions.AddRange(await GetActionsForFile(globalIdelConfigPath, request, culumulativeActionDefinitions));
+                    completedActions.AddRange(await GetActionsForFile(repoIdelConfigPath, request, tempDefinitions));
+                    culumulativeActionDefinitions.Update(tempDefinitions);
+                    completedActions.AddRange(await GetActionsForFile(userIdelConfigPath, request, culumulativeActionDefinitions));
+                    completedActions = completedActions.GroupBy(action => action.Source?.Name ?? "").Select(list => list.Last()).ToList();
                 }
             }
 
             IconResult browserIcon = IconUtils.DefaultBrowserIcon;
+
+            // If BrowserArgs were not passed, fill them in from the OS-defined values.
+            if (!BrowserArgs.Any())
+            {
+                BrowserArgs = (string[])(await new GetBrowserArgs() { Url = Url }.ExecuteAsync()).Objects["array"];
+            }
+
             // Special case pass-through websites: don't bother trying to grab icons if they are unrelated to your repos.
             // We do this so we don't make all non-repo links slower to open (e.g., YouTube, Drive, Facebook, Amazon, etc).
             // The case where this is particularly bad is where the website linked to is slow or dead, and it eventually

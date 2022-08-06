@@ -10,9 +10,12 @@ using System.Threading.Tasks;
 
 namespace CoreAPI.Cli
 {
-    [Verb("get-url")]
+    [Verb("get-url", HelpText = HelpText)]
     public class GetUrl
     {
+        public const string HelpText = "Returns the URL for a given local --file, with optional --start-line" +
+            "and --end-line.";
+
         [Option("file", Required = true)]
         public string File { get; set; } = "";
 

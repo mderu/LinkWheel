@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace CoreAPI.Cli
 {
-    [Verb("install")]
+    [Verb("install", HelpText = HelpText)]
     public class Install
     {
+        public const string HelpText = "Installs LinkWheel and adds it to your system path.";
         public Task<OutputData> ExecuteAsync()
         {
             if (OperatingSystem.IsWindows())

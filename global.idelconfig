@@ -27,7 +27,7 @@
             //                             //   (=request[?(@.startLine != null)].startLine=)
             //      endLine: int | null  // The last line number linked to. See startLine.
             //      repoConfig: RepoConfig  // The RepoConfig object that corresponds to the request
-            //                              // This includes things like the // root, remoteUrl, etc.
+            //                              // This includes things like the root, remoteUrl, etc.
             //                              // See https://github.com/mderu/LinkWheel/blob/master/CoreAPI/Config/RepoConfig.cs
             //  * action: any  // The contents of the `action` JSON object with the type that matches
             //                 // the name of this object (in this case "vscode").
@@ -109,16 +109,6 @@
     actions: {
         // A name to associate with this action, so user-defined actions can override.
         // This name should be specific to the repo.
-        openInVsCode: {
-            // Required: The name of the definition to model the action after.
-            definition: "vscode",
-            
-            // Everything else is the wild west: can be anything and everything. Data here
-            // can be used in the definition. Note that JSONPath queries cannot resolve
-            // `action`, but `request`, `name`, and `definition` are all present.
-            fnmatch: "Extensions/VSCode/**/*",
-            workspacePath: "./Extensions/VSCode/codelink/vscode-ext.code-workspace",
-        },
         openInVisualStudio: {
             // Required: The name of the definition to model the action after.
             definition: "visualStudio",
