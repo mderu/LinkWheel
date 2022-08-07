@@ -1,6 +1,8 @@
 ﻿using CoreAPI.Cli;
 using CoreAPI.Config;
 using CoreAPI.Models;
+using System;
+using System.Threading.Tasks;
 
 namespace CoreAPI.RemoteHosts
 {
