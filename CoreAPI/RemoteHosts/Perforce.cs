@@ -37,10 +37,15 @@ namespace CoreAPI.RemoteHosts
                 }
             }
 
+            // Exit early if the link does not look like a file served from Swarm.
             if (requestedParts[partIndex++] != "files")
             {
                 return (false, null);
             }
+
+
+            // TODO: Run `p4 -c <client> where <depot_path>` to avoid lookup issues with odd workspaces/stream views.
+
 
             // Note that we don't cache the stream because it can be changed.
             var stream = await GetStream(repoConfig);
@@ -49,7 +54,7 @@ namespace CoreAPI.RemoteHosts
             {
                 return (false, null);
             }
-            string[] streamParts = stream[2..].Split("/");
+            string[] streamParts = stream[2..].Split('/');
             
             for (int streamPartIndex = 0; streamPartIndex < streamParts.Length; streamPartIndex++)
             {

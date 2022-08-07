@@ -46,6 +46,8 @@ namespace CoreAPI.Utils
 
         public static string JoinToCommandLine(IEnumerable<string> args)
         {
+            // This function fails to handle unescaped ampersands.
+            // Maybe try https://stackoverflow.com/a/10489920/6876989?
             StringBuilder result = new();
             foreach (string arg in args)
             {

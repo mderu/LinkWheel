@@ -199,11 +199,8 @@ namespace CoreAPI.Cli
             {
                 List<RepoConfig> repoConfigs = RepoConfigFile.Read();
 
-                if (RemoteRepoHosts.TryGetLocalPathFromUrl(new Uri(Url), repoConfigs, out Request? unforgivenRequest))
+                if (RemoteRepoHosts.TryGetLocalPathFromUrl(new Uri(Url), repoConfigs, out Request request))
                 {
-                    // Forgiveness: if the try passes, it isn't null.
-                    Request request = unforgivenRequest!;
-
                     string globalIdelConfigPath = Path.Combine(LinkWheelConfig.DataDirectory, ".idelconfig");
                     string repoIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".idelconfig");
                     string userIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".user.idelconfig");

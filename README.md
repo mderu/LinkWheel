@@ -3,7 +3,7 @@
 
 
 LinkWheel is a tool that intercepts links to remote repository websites (such
-as GitHub, GitLab, or Helix Swarm), and offers the user the ability to access 
+as GitHub, GitLab, or Helix Swarm), and offers the user the ability to access
 their local copy of those files directly through different actions. With the
 default global configuration, users are given the options to either open the
 link in their browser, reveal the file in their file explorer, open the file
@@ -89,13 +89,13 @@ lines.
 
 ## Limitations
 
-* **Links are not incercepted when they are clicked on within your browser** 
+* **Links are not incercepted when they are clicked on within your browser**
   (otherwise, clicking on anything in GitHub or Swarm would be a hassle). Note
   that clicking on links in browser-based applications (Discord, Slack, Desktop
   Google Hangouts, etc) still intercepts as expected.
-  
+
   There are some ideas to make a browser extension to allow users to open the
-  wheel, but nothing is planned just yet. One workaround for this is to bind 
+  wheel, but nothing is planned just yet. One workaround for this is to bind
   `LinkWheelCli`'s `serve-clipboard` command to a keyboard shortcut, which
   would open LinkWheel for any valid link.
 
@@ -110,9 +110,13 @@ lines.
   they are on? When do they prefer to link to HEAD? How should the CLI handle
   this?).
 
+* **Multiple local repos synced to the same remote source is unspported.** This
+is a UI/UX problem and not a technical limitation. More thought into gracefully
+handling this usecase needs to be done.
+
 * **Opening links in Visual Studio doesn't open the file in the correct
   solution.** I have yet to find any evidence that this is possible. If anyone
-  has found a fix for this, please let me know and I can update the default 
+  has found a fix for this, please let me know and I can update the default
   global config to support this.
 
 ## Known Issues:
@@ -122,7 +126,7 @@ lines.
     way Windows control over the default browser, there isn't a great way
     around this.
 
-* **For JSONPath queries, `@.length` isn't supported.** This is a 
+* **For JSONPath queries, `@.length` isn't supported.** This is a
   [missing feature](https://github.com/JamesNK/Newtonsoft.Json/issues/1318) in
   Newtonsoft.Json. If you'd like to fix that, please fix it upstream within
   that project.

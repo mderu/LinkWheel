@@ -17,8 +17,8 @@ namespace CoreAPI.RemoteHosts
     {
         public override Task<(bool, Request?)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig)
         {
-            string[] requestedParts = remoteUri.PathAndQuery.Split("?")[0].Split("#")[0].Split("/");
-            string[] configuredParts = new Uri(repoConfig.RemoteRootUrl).PathAndQuery.Split("/");
+            string[] requestedParts = remoteUri.PathAndQuery.Split('?')[0].Split('#')[0].Split('/');
+            string[] configuredParts = new Uri(repoConfig.RemoteRootUrl).PathAndQuery.Split('/');
 
             for (int i = 0; i < configuredParts.Length; i++)
             {
@@ -28,7 +28,7 @@ namespace CoreAPI.RemoteHosts
                 }
             }
 
-            // Exit early if the URL does not look like a file hosted on GitHub (i.e., link to a non-file).
+            // Exit early if the URL does not look like a file hosted on GitHub or GitHub enterprise (i.e., link to a non-file).
             if (requestedParts.Length < 4 || !(requestedParts[3] == "blob" || requestedParts[3] == "tree"))
             {
                 return Task.FromResult<(bool, Request?)>((false, null));
@@ -37,9 +37,9 @@ namespace CoreAPI.RemoteHosts
             // Magic number explanation:
             // The 5 skipped parts are:
             //   1) empty string (paths are rooted)
-            //   2) username
+            //   2) username or organization
             //   3) repo name
-            //   4) blob or tree
+            //   4) 'blob' or 'tree'
             //   5) commit hash or branch name
             string filePath = Path.Combine(
                     repoConfig.Root,

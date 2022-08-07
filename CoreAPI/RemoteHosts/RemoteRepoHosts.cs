@@ -2,13 +2,6 @@
 using CoreAPI.Config;
 using CoreAPI.Models;
 using CoreAPI.Utils;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace CoreAPI.RemoteHosts
 {
@@ -47,7 +40,7 @@ namespace CoreAPI.RemoteHosts
                 .Select(pair => pair.remoteRepoHost);
         });
 
-        public static bool TryGetLocalPathFromUrl(Uri url, List<RepoConfig> repoCandidates, out Request? request)
+        public static bool TryGetLocalPathFromUrl(Uri url, List<RepoConfig> repoCandidates, [NotNullWhen(true)] out Request? request)
         {
             var tasks = repoCandidates.Select(
                 async (candidate) =>

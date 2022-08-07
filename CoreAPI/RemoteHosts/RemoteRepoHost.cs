@@ -1,8 +1,6 @@
 ﻿using CoreAPI.Cli;
 using CoreAPI.Config;
 using CoreAPI.Models;
-using System;
-using System.Threading.Tasks;
 
 namespace CoreAPI.RemoteHosts
 {
@@ -18,7 +16,7 @@ namespace CoreAPI.RemoteHosts
         public abstract Task<(bool, RepoConfig?)> TryGetRepoConfig(string localRepoRoot);
 
         /// <summary>
-        /// 
+        /// If possible, returns the local path for a given the given URL.
         /// </summary>
         /// <param name="localFilePath">The localFilePath requested as `{localFilePath}#{lineNum}:~:text={text}`</param>
         /// <param name="repoConfig">The repo config for this file.</param>
