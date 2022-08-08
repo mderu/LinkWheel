@@ -43,9 +43,7 @@ namespace LinkWheel
             
             if (args.Length == 0)
             {
-                // Running without a verb should start the system tray application.
-                // As a workaround for having no verbs, we open check the # of arguments.
-                Application.Run(new SystemTrayApplicationContext());
+                // Do nothing if there are no args. TODO: Show a version number dialog or something, idk.
                 return 0;
             }
 
