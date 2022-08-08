@@ -1,5 +1,4 @@
-﻿using LinkWheel.Cli;
-using System;
+﻿using System;
 using CommandLine;
 using System.Threading.Tasks;
 using CoreAPI.Cli;
@@ -13,7 +12,7 @@ using System.Reflection;
 // http://www.google.com (for the case where we don't want to intercept).
 // https://github.com/mderu/LinkWheel/blob/master/LinkWheel/Program.cs (for this file).
 
-namespace LinkWheel
+namespace LinkWheelCli
 {
     static class Program
     {
@@ -49,7 +48,7 @@ namespace LinkWheel
             OutputFormatter outputFormatter = new Parser()
                 .ParseArguments<HandleOutput>(args[0..argStart].Prepend("handle-output"))
                 .MapResult(
-                    (HandleOutput verb) => verb.Create(),
+                    (verb) => verb.Create(),
                     errs => null);
 
             var parser = new Parser(settings => settings.EnableDashDash = true);

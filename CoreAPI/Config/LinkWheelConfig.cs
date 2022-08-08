@@ -8,6 +8,7 @@ namespace CoreAPI.Config
         public const string ApplicationName = "LinkWheel";
         public static string DataDirectory => dataPath.Value;
         public static string InstallDirectory => Path.Combine(DataDirectory, "bin");
+        public static string PluginDirectory => Path.Combine(DataDirectory, "plugins");
 
         public static string IconCachePath => GetIconCachePath.Value;
         private static Lazy<string> GetIconCachePath = new(() => Path.Combine(DataDirectory, "iconCachePath"));
