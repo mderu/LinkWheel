@@ -25,7 +25,7 @@
     },
     "RegisterRepo": {
       "commandName": "Project",
-      "commandLineArgs": "register --path LinkWheel\\CoreAPI\\RemoteHosts\\GitHub.cs",
+      "commandLineArgs": "register --path LinkWheel\\CoreAPI\\Cli\\Install.cs",
       "workingDirectory": "../../"
     },
     "TestOutput": {

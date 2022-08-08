@@ -161,7 +161,7 @@ namespace CoreAPI.Utils
                         return Environment.GetEnvironmentVariable(value) ?? "";
                     }
                 });
-                return Path.GetFullPath(newPath);
+                return Path.GetFullPath(newPath).ToLower();
             }
             
             if (inPath.StartsWith("~/"))

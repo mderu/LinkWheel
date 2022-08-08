@@ -1,34 +1,49 @@
 ﻿using CoreAPI.RemoteHosts;
 using CoreAPI.Utils;
+using LiteDB;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace CoreAPI.Config
 {
-    public static class RepoConfigFile
+    public static class RepoConfigs
     {
-        public static List<RepoConfig> Read()
+        public static List<RepoConfig> All()
         {
-            string config = FileUtils.ReadAllTextWait(LinkWheelConfig.TrackedReposFile);
-            List<RepoConfig> repoConfigs;
-            try
+            using LiteDatabase db = new(LinkWheelConfig.DatabaseFile);
+            return db.GetCollection<RepoConfig>().Query().OrderBy(repoConfig => repoConfig.Root).ToList();
+        }
+
+        public static void Register(RepoConfig newRepoConfig)
+        {
+            using LiteDatabase db = new(LinkWheelConfig.DatabaseFile);
+            var repoConfigCollection = db.GetCollection<RepoConfig>();
+            var existingQuery = repoConfigCollection.Query()
+                // ToList used so we can query true path equality
+                // (FileUtils.ArePathsEqual cannot be converted to Bson query)
+                .ToList()
+                .Where(config => FileUtils.ArePathsEqual(config.Root, newRepoConfig.Root))
+                .Select(item => item.Id);
+            if (existingQuery.Any())
             {
-                repoConfigs = JsonConvert.DeserializeObject<List<RepoConfig>>(config)
-                    // If the file is empty, assume an empty list.
-                    ?? new();
+                repoConfigCollection.Update(existingQuery.First(), newRepoConfig);
             }
-            catch (JsonReaderException)
+            else
             {
-                // If the file got messed up somehow, ignore its contents.
-                repoConfigs = new();
+                db.GetCollection<RepoConfig>().Insert(newRepoConfig);
             }
-            return repoConfigs;
         }
     }
 
     public class RepoConfig
     {
+        /// <summary>
+        /// An ID used for LiteDB.
+        /// </summary>
+        [JsonIgnore]
+        public int Id { get; set; }
+
         /// <summary>
         /// The local path to the root directory of this repo.
         /// </summary>
@@ -50,6 +65,15 @@ namespace CoreAPI.Config
         public string RemoteRootUrl { get; init; } = "";
 
         /// <summary>
+        /// The regex that takes in a URL to match the local repo. Note that overfitting is allowed here, but is
+        /// discouraged, as this regex is used to skip over potientially complex resolution logic.
+        /// 
+        /// Users should use <see cref="RemoteRootUrl"/> instead to get more accurate information.
+        /// </summary>
+        [JsonProperty("remoteRootRegex", Required = Required.DisallowNull)]
+        public string RemoteRootRegex { get; init; } = "";
+
+        /// <summary>
         /// The class name of the remote repo host provider to use to translate the remote root url to a local file.
         /// </summary>
         [JsonProperty("remoteRepoHostType", Required = Required.DisallowNull)]
@@ -66,13 +90,18 @@ namespace CoreAPI.Config
         {
             get
             {
-                remoteRepoHostType ??= RemoteRepoHosts.All
-                    .Where(host => host.GetType().Name == RawRemoteRepoHostType)
-                    .FirstOrDefault();
                 if (remoteRepoHostType is null)
                 {
-                    throw new System.InvalidOperationException(
-                        $"No known remoteRepoHostType of type {RawRemoteRepoHostType}");
+                    remoteRepoHostType = RemoteRepoHosts.All
+                        .Where(host => host.GetType().Name == RawRemoteRepoHostType)
+                        .FirstOrDefault();
+                    if (remoteRepoHostType is null)
+                    {
+                        // TODO: An unloaded plugin or version difference can cause this error to be thrown.
+                        // We should instead remove the entry from the DB and continue.
+                        throw new System.InvalidOperationException(
+                            $"No known remoteRepoHostType of type {RawRemoteRepoHostType}");
+                    }
                 }
                 return remoteRepoHostType;
             }

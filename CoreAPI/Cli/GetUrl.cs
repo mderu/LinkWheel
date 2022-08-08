@@ -27,7 +27,7 @@ namespace CoreAPI.Cli
 
         public async Task<OutputData> ExecuteAsync()
         {
-            List<RepoConfig> repoConfigs = RepoConfigFile.Read();
+            List<RepoConfig> repoConfigs = RepoConfigs.All();
 
             if (TaskUtils.Try(await RemoteRepoHosts.TryGetRemoteLinkFromPath(this, repoConfigs), out RepoConfig? repoConfig, out Uri ? remoteLink))
             {

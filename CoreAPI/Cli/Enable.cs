@@ -30,7 +30,7 @@ namespace CoreAPI.Cli
         {
             if (OperatingSystem.IsWindows())
             {
-                using RegistryKey? classesRoot = Registry.ClassesRoot.OpenSubKey(nameof(LinkWheel));
+                using RegistryKey? classesRoot = Registry.ClassesRoot.OpenSubKey(LinkWheelConfig.ApplicationName);
                 if (classesRoot is null)
                 {
                     return false;

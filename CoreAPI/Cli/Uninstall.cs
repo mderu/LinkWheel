@@ -4,7 +4,7 @@ using CoreAPI.OutputFormat;
 using System;
 using System.Threading.Tasks;
 
-namespace LinkWheel.Cli
+namespace CoreAPI.Cli
 {
     [Verb("uninstall", HelpText = HelpText)]
     public class Uninstall

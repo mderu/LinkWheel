@@ -84,6 +84,7 @@ namespace CoreAPI.RemoteHosts
                         RemoteRootUrl = remoteOrigin[..^4],
                         Root = (await GetRepoRoot(pathInRepo)).root,
                         RawRemoteRepoHostType = nameof(GitHub),
+                        RemoteRootRegex = $"{Regex.Escape(remoteOrigin[..^4])}",
                     }
                 );
             }

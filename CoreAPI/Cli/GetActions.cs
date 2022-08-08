@@ -194,26 +194,22 @@ namespace CoreAPI.Cli
         public async Task<List<IdelAction>> Get()
         {
             List<IdelAction> completedActions = new();
+            List<RepoConfig> repoConfigs = RepoConfigs.All();
 
-            if (File.Exists(LinkWheelConfig.TrackedReposFile))
+            if (RemoteRepoHosts.TryGetLocalPathFromUrl(new Uri(Url), repoConfigs, out Request? request))
             {
-                List<RepoConfig> repoConfigs = RepoConfigFile.Read();
+                string globalIdelConfigPath = Path.Combine(LinkWheelConfig.DataDirectory, ".idelconfig");
+                string repoIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".idelconfig");
+                string userIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".user.idelconfig");
 
-                if (RemoteRepoHosts.TryGetLocalPathFromUrl(new Uri(Url), repoConfigs, out Request request))
-                {
-                    string globalIdelConfigPath = Path.Combine(LinkWheelConfig.DataDirectory, ".idelconfig");
-                    string repoIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".idelconfig");
-                    string userIdelConfigPath = Path.Combine(request.RepoConfig.Root, ".user.idelconfig");
+                Dictionary<string, IdelActionDefinition> culumulativeActionDefinitions = new();
+                Dictionary<string, IdelActionDefinition> tempDefinitions = new();
 
-                    Dictionary<string, IdelActionDefinition> culumulativeActionDefinitions = new();
-                    Dictionary<string, IdelActionDefinition> tempDefinitions = new();
-
-                    completedActions.AddRange(await GetActionsForFile(globalIdelConfigPath, request, culumulativeActionDefinitions));
-                    completedActions.AddRange(await GetActionsForFile(repoIdelConfigPath, request, tempDefinitions));
-                    culumulativeActionDefinitions.Update(tempDefinitions);
-                    completedActions.AddRange(await GetActionsForFile(userIdelConfigPath, request, culumulativeActionDefinitions));
-                    completedActions = completedActions.GroupBy(action => action.Source?.Name ?? "").Select(list => list.Last()).ToList();
-                }
+                completedActions.AddRange(await GetActionsForFile(globalIdelConfigPath, request, culumulativeActionDefinitions));
+                completedActions.AddRange(await GetActionsForFile(repoIdelConfigPath, request, tempDefinitions));
+                culumulativeActionDefinitions.Update(tempDefinitions);
+                completedActions.AddRange(await GetActionsForFile(userIdelConfigPath, request, culumulativeActionDefinitions));
+                completedActions = completedActions.GroupBy(action => action.Source?.Name ?? "").Select(list => list.Last()).ToList();
             }
 
             IconResult browserIcon = IconUtils.DefaultBrowserIcon;
@@ -277,7 +273,7 @@ namespace CoreAPI.Cli
         {
             if (OperatingSystem.IsWindows())
             {
-                RegistryKey? registryKey = Registry.ClassesRoot.OpenSubKey(nameof(LinkWheel));
+                RegistryKey? registryKey = Registry.ClassesRoot.OpenSubKey(LinkWheelConfig.ApplicationName);
                 return bool.Parse((string?)registryKey?.GetValue(LinkWheelConfig.Registry.EnabledValue, "false")
                     ?? "false");
             }

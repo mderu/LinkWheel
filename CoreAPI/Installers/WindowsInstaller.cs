@@ -63,7 +63,7 @@ namespace CoreAPI.Installers
         public bool IsEnabled()
         {
             return bool.Parse(
-                (string?)Registry.ClassesRoot.OpenSubKey(nameof(LinkWheel))
+                (string?)Registry.ClassesRoot.OpenSubKey(LinkWheelConfig.ApplicationName)
                 ?.GetValue(LinkWheelConfig.Registry.EnabledValue, "false") ?? "false");
         }
 
@@ -331,12 +331,12 @@ namespace CoreAPI.Installers
             string dllLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
             // Replaces the ".dll" extension with ".exe".
             string location = dllLocation[..^4] + ".exe";
-
-            if (Registry.LocalMachine.OpenSubKey(@$"SOFTWARE\Classes\{nameof(LinkWheel)}") == null)
+            string appName = LinkWheelConfig.ApplicationName;
+            if (Registry.LocalMachine.OpenSubKey(@$"SOFTWARE\Classes\{appName}") == null)
             {
-                using (var key = Registry.CurrentUser.CreateSubKey(@$"SOFTWARE\Classes\{nameof(LinkWheel)}"))
+                using (var key = Registry.CurrentUser.CreateSubKey(@$"SOFTWARE\Classes\{appName}"))
                 {
-                    key.SetValue(string.Empty, $"URL:{nameof(LinkWheel)} Protocol");
+                    key.SetValue(string.Empty, $"URL:{appName} Protocol");
                     key.SetValue("URL Protocol", string.Empty);
 
                     using (var defaultIcon = key.CreateSubKey("DefaultIcon"))

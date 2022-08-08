@@ -2,6 +2,7 @@
 using CoreAPI.Config;
 using CoreAPI.OutputFormat;
 using CoreAPI.Utils;
+using LiteDB;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
@@ -29,42 +30,12 @@ namespace CoreAPI.Cli
             {
                 foreach (var repoConfig in results)
                 {
-                    Register(repoConfig);
+                    RepoConfigs.Register(repoConfig);
                 }
                 result.Objects["result"] = results[0];
             }
             result.Format = "(=$=)";
             return result;
-        }
-
-        public static void Register(RepoConfig newRepoConfig)
-        {
-            FileUtils.Lock(LinkWheelConfig.TrackedReposFile, (filestream) =>
-            {
-                using StreamReader sr = new(filestream);
-                using StreamWriter sw = new(filestream);
-
-                List<RepoConfig> currentRepoConfigs;
-                try
-                {
-                    currentRepoConfigs = JsonConvert.DeserializeObject<List<RepoConfig>>(sr.ReadToEnd())
-                        ?? new();
-                }
-                catch (JsonReaderException)
-                {
-                    // If the file got messed up somehow, ignore its contents.
-                    currentRepoConfigs = new();
-                }
-
-                filestream.SetLength(0);
-                sw.Write(JsonConvert.SerializeObject(
-                        currentRepoConfigs
-                            // If the repo root is already there, remove that entry. This should make it easier for us to
-                            // update RemoteRepoHosts in the future (e.g., splitting GitLab from GitHub).
-                            .Where(config => !FileUtils.ArePathsEqual(config.Root, newRepoConfig.Root))
-                            .Append(newRepoConfig)));
-                sw.Flush();
-            });
         }
     }
 }

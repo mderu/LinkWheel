@@ -13,7 +13,8 @@ namespace CoreAPI.Config
         public static string IconCachePath => GetIconCachePath.Value;
         private static Lazy<string> GetIconCachePath = new(() => Path.Combine(DataDirectory, "iconCachePath"));
 
-        public static string TrackedReposFile => Path.Combine(dataPath.Value, "trackedRepos.json");
+        public static string DatabaseFile => Path.Combine(dataPath.Value, "liteDB.db");
+
         private static readonly Lazy<string> dataPath = new(() =>
         {
             if (OperatingSystem.IsWindows())

@@ -116,7 +116,8 @@ namespace CoreAPI.RemoteHosts
                                     ["port"] = port,
                                     ["username"] = username,
                                 },
-                                RawRemoteRepoHostType = nameof(Perforce)
+                                RawRemoteRepoHostType = nameof(Perforce),
+                                RemoteRootRegex = $"{Regex.Escape(swarmUrl)}",
                             });
                     }
                 }
