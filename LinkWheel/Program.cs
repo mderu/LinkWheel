@@ -7,6 +7,10 @@ using CoreAPI.Installers;
 using CoreAPI.Utils;
 using LinkWheel.Cli;
 using CoreAPI.Models;
+using System.IO;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
+using CoreAPI.Config;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
@@ -60,7 +64,41 @@ namespace LinkWheel
             else if (actions.Count == 1)
             {
                 // Don't open the option wheel if there's only one option.
-                CliUtils.SimpleInvoke(actions[0].Command, actions[0].CommandWorkingDirectory);
+
+                // TODO: Add a flag for enabling this, as well as better logging with timestamps
+# if DEBUG
+                File.WriteAllText(Path.Combine(LinkWheelConfig.DataDirectory, "invocation.txt"), Environment.CommandLine);
+                File.WriteAllText(Path.Combine(LinkWheelConfig.DataDirectory, "lastLink.txt"), actions[0].Command);
+# endif
+                // TODO: A library might handle argument parsing better.
+                string command = actions[0].Command.Trim();
+                Regex word = new(@"\S+");
+                string fileName;
+                string arguments;
+                if (command.StartsWith('"'))
+                {
+                    fileName = command[1..command.IndexOf('"', 1)];
+                    arguments = command[(command.IndexOf('"', 1) + 1)..];
+                }
+                else
+                {
+                    fileName = word.Match(command).Value;
+                    arguments = command[(fileName.Length + 1)..];
+                }
+
+                Process process = new()
+                {
+                    EnableRaisingEvents = true,
+                    StartInfo = new ProcessStartInfo
+                    {
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        FileName = fileName,
+                        WorkingDirectory = actions[0].CommandWorkingDirectory,
+                        Arguments = arguments
+                    },
+                };
+                process.Start();
             }
             else
             {
