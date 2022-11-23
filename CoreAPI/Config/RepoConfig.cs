@@ -56,7 +56,7 @@ namespace CoreAPI.Config
         /// <remarks>
         /// The exact URI format is defined on a per-host type basis. Ideally, this should be a URL that can be
         /// combined with the file's path relative to the repo root.
-        /// 
+        ///
         /// If any substantial remote repository solution doesn't allow for the local path to translate well to a
         /// remote URL, we should use the RemoteHostType to handle any API calls we need to serve a local link to the
         /// file.
@@ -67,7 +67,7 @@ namespace CoreAPI.Config
         /// <summary>
         /// The regex that takes in a URL to match the local repo. Note that overfitting is allowed here, but is
         /// discouraged, as this regex is used to skip over potientially complex resolution logic.
-        /// 
+        ///
         /// Users should use <see cref="RemoteRootUrl"/> instead to get more accurate information.
         /// </summary>
         [JsonProperty("remoteRootRegex", Required = Required.DisallowNull)]
@@ -83,7 +83,7 @@ namespace CoreAPI.Config
         private RemoteRepoHost? remoteRepoHostType;
 
         /// <summary>
-        /// A reference to the <see cref="RemoteRepoHost"/> responsible for 
+        /// A reference to the <see cref="RemoteRepoHost"/> responsible for
         /// </summary>
         [JsonIgnore]
         public RemoteRepoHost RemoteRepoHostType

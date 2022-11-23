@@ -1,19 +1,19 @@
-﻿using CommandLine;
-using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using CoreAPI.Config;
+﻿using CoreAPI.Config;
 using CoreAPI.RemoteHosts;
 using CoreAPI.Icons;
-using Newtonsoft.Json;
 using CoreAPI.OutputFormat;
 using CoreAPI.Models;
-using Newtonsoft.Json.Linq;
 using CoreAPI.Utils;
+using CommandLine;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using Newtonsoft.Json;
+using System;
 using Microsoft.Extensions.FileSystemGlobbing;
 using System.Linq;
+using Microsoft.Win32;
 
 namespace CoreAPI.Cli
 {

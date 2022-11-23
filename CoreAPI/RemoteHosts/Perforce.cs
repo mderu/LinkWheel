@@ -18,13 +18,13 @@ namespace CoreAPI.RemoteHosts
     {
         public override async Task<(bool, Request?)> TryGetLocalPath(Uri remoteUri, RepoConfig repoConfig)
         {
-            string[] requestedParts = 
+            string[] requestedParts =
                 remoteUri.PathAndQuery
                     .Split("#")[0]
                     .Split("?")[0]
                     // Empty entries are removed because Swarm accepts any number of slashes after "/files/"
                     .Split('/', StringSplitOptions.RemoveEmptyEntries);
-            string[] configuredParts = 
+            string[] configuredParts =
                 new Uri(repoConfig.RemoteRootUrl).PathAndQuery
                     .Split('/', StringSplitOptions.RemoveEmptyEntries);
 
@@ -55,7 +55,7 @@ namespace CoreAPI.RemoteHosts
                 return (false, null);
             }
             string[] streamParts = stream[2..].Split('/');
-            
+
             for (int streamPartIndex = 0; streamPartIndex < streamParts.Length; streamPartIndex++)
             {
                 if (requestedParts[partIndex] != streamParts[streamPartIndex])
@@ -101,12 +101,12 @@ namespace CoreAPI.RemoteHosts
                 }
                 List<string> clientRoots = await GetClientRootsForServer(port, username);
 
-                foreach(string client in clientRoots)
+                foreach (string client in clientRoots)
                 {
                     if (FileUtils.IsWithinPath(client, localRepoRoot))
                     {
                         return (
-                            true, 
+                            true,
                             new RepoConfig()
                             {
                                 Root = client,
@@ -139,9 +139,9 @@ namespace CoreAPI.RemoteHosts
 
             Uri returnValue = new(
                 Path.Combine(
-                    repoConfig.RemoteRootUrl, 
-                    "files", 
-                    stream.Replace("//", ""), 
+                    repoConfig.RemoteRootUrl,
+                    "files",
+                    stream.Replace("//", ""),
                     actualPath.Replace('\\', '/')
             ));
 

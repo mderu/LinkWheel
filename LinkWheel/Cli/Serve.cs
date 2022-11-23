@@ -32,7 +32,7 @@ namespace LinkWheel.Cli
             }
             return await new GetActions()
             {
-                Url = Url, 
+                Url = Url,
                 BrowserArgs = browserArgs
             }.Get();
         }

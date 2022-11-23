@@ -5,7 +5,6 @@ using CoreAPI.RemoteHosts;
 using CoreAPI.Utils;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace CoreAPI.Cli
@@ -29,7 +28,7 @@ namespace CoreAPI.Cli
         {
             List<RepoConfig> repoConfigs = RepoConfigs.All();
 
-            if (TaskUtils.Try(await RemoteRepoHosts.TryGetRemoteLinkFromPath(this, repoConfigs), out RepoConfig? repoConfig, out Uri ? remoteLink))
+            if (TaskUtils.Try(await RemoteRepoHosts.TryGetRemoteLinkFromPath(this, repoConfigs), out RepoConfig? repoConfig, out Uri? remoteLink))
             {
                 // Forgiveness: above try passes, so both can be forgiven.
                 return new(0, new() { ["repoConfig"] = repoConfig!, ["url"] = remoteLink!.ToString() }, "(=url=)");

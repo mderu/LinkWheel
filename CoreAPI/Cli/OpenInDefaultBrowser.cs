@@ -1,10 +1,5 @@
 ﻿using CommandLine;
-using CoreAPI.Config;
-using CoreAPI.Installers;
 using CoreAPI.OutputFormat;
-using CoreAPI.Utils;
-using Microsoft.Win32;
-using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;

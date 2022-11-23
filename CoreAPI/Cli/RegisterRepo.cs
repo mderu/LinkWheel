@@ -1,12 +1,7 @@
 ﻿using CommandLine;
 using CoreAPI.Config;
 using CoreAPI.OutputFormat;
-using CoreAPI.Utils;
-using LiteDB;
-using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CoreAPI.Cli

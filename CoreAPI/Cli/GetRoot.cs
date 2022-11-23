@@ -17,7 +17,7 @@ namespace CoreAPI.Cli
             "repo stored within a Perforce repo), an error message is returned. You can still " +
             "get the available paths by using the global `--format` flag.";
 
-        [Option("path", Required = true, 
+        [Option("path", Required = true,
             HelpText = "The path of a file or directory you wish to find the repo root of.")]
         public string Path { get; set; } = "";
 

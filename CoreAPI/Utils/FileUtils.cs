@@ -30,7 +30,7 @@ namespace CoreAPI.Utils
                 try
                 {
                     using var file = File.Open(
-                        path, 
+                        path,
                         FileMode.OpenOrCreate,
                         FileAccess.ReadWrite,
                         FileShare.Write);
@@ -148,7 +148,8 @@ namespace CoreAPI.Utils
             {
                 // Support special directories
                 var regex = new Regex("([%][^%]+[%])");
-                string newPath = regex.Replace(inPath, (match) => {
+                string newPath = regex.Replace(inPath, (match) =>
+                {
                     // get rid of %%
                     string value = match.Value[1..^1];
                     if (Enum.TryParse(value, out Environment.SpecialFolder result))
@@ -163,7 +164,7 @@ namespace CoreAPI.Utils
                 });
                 return Path.GetFullPath(newPath).ToLower();
             }
-            
+
             if (inPath.StartsWith("~/"))
             {
                 // Not sure if this resolves inner ../'s.
@@ -206,7 +207,7 @@ namespace CoreAPI.Utils
                     fullPath = (string)regKey.OpenSubKey(keyName)!.GetValue("", "")!;
                     fullPath = fullPath.Trim('\"');
                     return true;
-                }                
+                }
                 return fullPath != null;
             }
             throw new NotImplementedException("TODO: Implement this with where/which in Bash");

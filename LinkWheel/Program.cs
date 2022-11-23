@@ -4,7 +4,6 @@ using CommandLine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using CoreAPI.Installers;
-using CoreAPI.Utils;
 using LinkWheel.Cli;
 using CoreAPI.Models;
 using System.IO;
@@ -40,7 +39,7 @@ namespace LinkWheel
             Installer.EnsureInstalled();
 
             string[] args = Environment.GetCommandLineArgs()[1..];
-            
+
             if (args.Length == 0)
             {
                 // Do nothing if there are no args. TODO: Show a version number dialog or something, idk.

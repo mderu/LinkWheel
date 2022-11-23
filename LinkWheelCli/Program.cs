@@ -5,7 +5,6 @@ using CoreAPI.Cli;
 using System.Linq;
 using CoreAPI.OutputFormat;
 using CommandLine.Text;
-using System.Text.RegularExpressions;
 using System.Reflection;
 
 // Links provided to make testing easier:

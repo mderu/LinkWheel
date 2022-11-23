@@ -5,9 +5,7 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Security;
 using System.Text.RegularExpressions;
 
@@ -27,7 +25,7 @@ namespace CoreAPI.Installers
 
         public void EnsureInstalled()
         {
-            if(!IsInstalled())
+            if (!IsInstalled())
             {
                 ForceInstall();
             }

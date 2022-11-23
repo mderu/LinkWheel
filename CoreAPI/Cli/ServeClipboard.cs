@@ -49,15 +49,15 @@ namespace CoreAPI.Cli
                         LinkWheelConfig.Registry.DefaultBrowserProgId);
                 if (classKey is null)
                 {
-                    return new(1, 
-                        new() { ["clipboard"] = clipboardContents }, 
+                    return new(1,
+                        new() { ["clipboard"] = clipboardContents },
                         $"Unable to open url (=clipboard=): the registry key {registryKey} does not exist.");
                 }
 
                 string commandline = (string)(Registry.GetValue($@"HKEY_CLASSES_ROOT\{classKey}\shell\open\command", "", "") ?? "");
                 commandline = commandline.Replace("%1", clipboardContents);
                 string[] arguments = CliUtils.CommandLineToArgs(commandline);
-                ProcessStartInfo startInfo = new(arguments[0], string.Join(" ", arguments[1..].Select(arg=> arg.Contains(" ") ? $"\"{arg}\"" : arg)))
+                ProcessStartInfo startInfo = new(arguments[0], string.Join(" ", arguments[1..].Select(arg => arg.Contains(" ") ? $"\"{arg}\"" : arg)))
                 {
                     UseShellExecute = false,
                     CreateNoWindow = true,
