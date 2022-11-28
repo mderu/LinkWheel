@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using CoreAPI.Config;
 using CoreAPI.Icons;
 using CoreAPI.Models;
 using CoreAPI.Utils;
@@ -93,11 +92,11 @@ namespace LinkWheel
                 Rectangle inner = innerCircleBounds;
                 Rectangle outer = outerCircleBounds;
                 int radius = WheelRadius;
-                if (MathUtils.IsBetweenAngles(mouseAngle, startAngle, startAngle + sweepAngle) 
+                if (MathUtils.IsBetweenAngles(mouseAngle, startAngle, startAngle + sweepAngle)
                     && (localCursorPosition.Subtract(WheelCenter).GetSquareMagnitude() > DeadSelectionRadius * DeadSelectionRadius))
                 {
                     selectedAction = i;
-                    
+
                     if (lastHoveredIndex != selectedAction)
                     {
                         lastHoverStartTime = Stopwatch.Elapsed.TotalSeconds;
@@ -124,8 +123,8 @@ namespace LinkWheel
                     float angleDiff = MathUtils.ShortestAngleDifference(mouseAngle, startAngle + sweepAngle / 2);
                     color = Color.FromArgb(
                         255 - (int)(192.0f * Math.Clamp(MathF.Abs(angleDiff) / 90, 0, 1)),
-                        96, 
-                        96, 
+                        96,
+                        96,
                         96);
                 }
                 gp.AddArc(outer, startAngle, sweepAngle);

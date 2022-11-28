@@ -10,6 +10,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using CoreAPI.Config;
+using System.Linq;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
@@ -34,6 +35,7 @@ namespace LinkWheel
             // likely, and would still have the same behavior we are seeing now.
             var cursorPosition = Cursor.Position;
 
+
             // Always ensure LinkWheel is installed before running a command. No point in making the user
             // run an install command before being able to use the executable.
             Installer.EnsureInstalled();
@@ -54,6 +56,13 @@ namespace LinkWheel
                         errs => Task.FromResult(new List<IdelAction>())
                     )).ConfigureAwait(false).GetAwaiter().GetResult();
 
+            // TODO: Add a flag for enabling this, as well as better logging with timestamps
+#if DEBUG
+            File.WriteAllText(Path.Combine(LinkWheelConfig.DataDirectory, "invocation.txt"), Environment.CommandLine);
+            File.WriteAllText(Path.Combine(LinkWheelConfig.DataDirectory, "lastLink.txt"),
+                string.Join('\n', actions.Select(action => $"Command: {action.Command}\nWorking Directory: {action.CommandWorkingDirectory}")));
+# endif
+
             if (actions.Count == 0)
             {
                 return 1;
@@ -61,12 +70,6 @@ namespace LinkWheel
             else if (actions.Count == 1)
             {
                 // Don't open the option wheel if there's only one option.
-
-                // TODO: Add a flag for enabling this, as well as better logging with timestamps
-# if DEBUG
-                File.WriteAllText(Path.Combine(LinkWheelConfig.DataDirectory, "invocation.txt"), Environment.CommandLine);
-                File.WriteAllText(Path.Combine(LinkWheelConfig.DataDirectory, "lastLink.txt"), actions[0].Command);
-# endif
                 // TODO: A library might handle argument parsing better.
                 string command = actions[0].Command.Trim();
                 Regex word = new(@"\S+");

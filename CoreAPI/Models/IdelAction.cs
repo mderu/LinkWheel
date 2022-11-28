@@ -38,7 +38,7 @@ namespace CoreAPI.Models
             string description = "",
             string? iconSource = null, 
             string? iconSecondarySource = null,
-            ActionSource source = null)
+            ActionSource? source = null)
         {
             Priority = priority;
             Command = command;

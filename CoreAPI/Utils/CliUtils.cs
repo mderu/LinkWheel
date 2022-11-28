@@ -44,9 +44,14 @@ namespace CoreAPI.Utils
             }
         }
 
+        /// <summary>
+        /// Joins arguments to a batch command line string. Note that special characters may create issues.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public static string JoinToCommandLine(IEnumerable<string> args)
         {
-            // This function fails to handle unescaped ampersands.
+            // Many special characters will not get caught.
             // Maybe try https://stackoverflow.com/a/10489920/6876989?
             StringBuilder result = new();
             foreach (string arg in args)
@@ -54,12 +59,15 @@ namespace CoreAPI.Utils
                 if (arg.Contains(" "))
                 {
                     result.Append('\"');
-                    result.Append(arg.Replace("\"", "\\\""));
+                    result.Append(arg
+                        .Replace("\"", "\\\"")
+                        .Replace("&", "^&"));
                     result.Append('\"');
                 }
                 else
                 {
-                    result.Append(arg);
+                    result.Append(arg
+                        .Replace("&", "^&"));
                 }
                 result.Append(' ');
             }

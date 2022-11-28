@@ -41,6 +41,10 @@
     "Url With Special Characters": {
       "commandName": "Project",
       "commandLineArgs": "https://www.w3schools.com/action_page2.php?textA=foo%20bar&textB=baz"
+    },
+    "LinkWheel VSCode with Special Characters": {
+      "commandName": "Project",
+      "commandLineArgs": "serve --url https://github.com/mderu/LinkWheel/blob/master/Extensions/VSCode/codelink/src/extension.ts#L15?foo=bar&baz=bin -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument https://github.com/mderu/LinkWheel/blob/master/Extensions/VSCode/codelink/src/extension.ts#L15?foo=bar&baz=bin"
     }
   }
 }
