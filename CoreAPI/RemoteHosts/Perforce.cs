@@ -43,34 +43,18 @@ namespace CoreAPI.RemoteHosts
                 return (false, null);
             }
 
+            string depotPath = "//" + string.Join('/', requestedParts[partIndex..]);
+            var localPath = await GetLocalPath(repoConfig, depotPath);
 
-            // TODO: Run `p4 -c <client> where <depot_path>` to avoid lookup issues with odd workspaces/stream views.
-
-
-            // Note that we don't cache the stream because it can be changed.
-            var stream = await GetStream(repoConfig);
-            // TODO: Find out what path is used if the repo doesn't use streams.
-            if (stream is null)
+            if (string.IsNullOrEmpty(localPath))
             {
                 return (false, null);
             }
-            string[] streamParts = stream[2..].Split('/');
-
-            for (int streamPartIndex = 0; streamPartIndex < streamParts.Length; streamPartIndex++)
-            {
-                if (requestedParts[partIndex] != streamParts[streamPartIndex])
-                {
-                    return (false, null);
-                }
-                partIndex++;
-            }
-
-            string localPath = Path.Combine(repoConfig.Root, string.Join('/', requestedParts.Skip(partIndex)));
 
             Request request = new(remoteUri.ToString(), localPath, repoConfig);
             // Here we assume other fragments can exist, so we look for a fragment with only numbers.
             // AFAIK, Swarm can't link to a range of line numbers.
-            var lineFragment = new Regex(@"(^|&)(?<lineNum>\d+)(&|$)").Match(remoteUri.Fragment);
+            var lineFragment = new Regex(@"(^|&)[Ll]?(?<lineNum>\d+)(&|$)").Match(remoteUri.Fragment);
 
             if (lineFragment.Success)
             {
@@ -99,26 +83,27 @@ namespace CoreAPI.RemoteHosts
                 {
                     continue;
                 }
-                List<string> clientRoots = await GetClientRootsForServer(port, username);
+                List<(string clientName, string path)> clients = await GetClientsForServer(port, username);
 
-                foreach (string client in clientRoots)
+                foreach((string clientName, string path) in clients)
                 {
-                    if (FileUtils.IsWithinPath(client, localRepoRoot))
+                    RepoConfig potentialConfig = new()
                     {
-                        return (
-                            true,
-                            new RepoConfig()
-                            {
-                                Root = client,
-                                RemoteRootUrl = swarmUrl,
-                                RemoteRepoHostKeys = new Dictionary<string, string>()
-                                {
-                                    ["port"] = port,
-                                    ["username"] = username,
-                                },
-                                RawRemoteRepoHostType = nameof(Perforce),
-                                RemoteRootRegex = $"{Regex.Escape(swarmUrl)}",
-                            });
+                        Root = path,
+                        RemoteRootUrl = swarmUrl,
+                        RemoteRepoHostKeys = new Dictionary<string, string>()
+                        {
+                            ["port"] = port,
+                            ["username"] = username,
+                            ["client"] = clientName,
+                        },
+                        RawRemoteRepoHostType = nameof(Perforce),
+                        RemoteRootRegex = $"{Regex.Escape(swarmUrl)}",
+                    };
+
+                    if (await IsPathInWorkspaceView(potentialConfig, localRepoRoot))
+                    {
+                        return (true, potentialConfig);
                     }
                 }
             }
@@ -148,35 +133,69 @@ namespace CoreAPI.RemoteHosts
             if (request.StartLine is not null)
             {
                 StringBuilder newUrl = new(returnValue.ToString());
-                newUrl.Append("#");
+                newUrl.Append('#');
                 newUrl.Append(request.StartLine.Value);
                 returnValue = new Uri(newUrl.ToString());
             }
             return returnValue;
         }
 
-        private static async Task<List<string>> GetClientRootsForServer(string port, string username)
+        private static async Task<List<(string clientName, string path)>> GetClientsForServer(string port, string username)
         {
             var stdOutBuffer = new StringBuilder();
             await CliWrap.Cli.Wrap("p4")
-                .WithArguments($"-ztag -F %Host%,%Root% -p {port} -u {username} clients -u {username}")
+                // Separator logic: Hostnames can only contain [A-Z], [a-z], \., -
+                //                  @ is a reserved character for client names.
+                .WithArguments($"-ztag -F %Host%@%client%@%Root% -p {port} -u {username} clients -u {username}")
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
                 .WithValidation(CommandResultValidation.None)
                 .ExecuteAsync();
 
-            // Only tested on Windows.
-            string expectedPrefix = $"{Environment.MachineName},";
+            // Note: I've only tested this on Windows.
+            string expectedPrefix = $"{Environment.MachineName}@";
 
-            List<string> results = new();
+            List<(string clientName, string path)> results = new();
             foreach (string line in stdOutBuffer.ToString().Split(Environment.NewLine))
             {
                 if (line.StartsWith(expectedPrefix))
                 {
-                    results.Add(line[expectedPrefix.Length..]);
+                    string[] parts = line[expectedPrefix.Length..].Split('@', 2);
+                    results.Add((clientName: parts[0], path: parts[1]));
                 }
             }
 
             return results;
+        }
+
+        private static async Task<bool> IsPathInWorkspaceView(RepoConfig repoConfig, string path)
+        {
+            string port = repoConfig.RemoteRepoHostKeys["port"];
+            string username = repoConfig.RemoteRepoHostKeys["username"];
+            string clientName = repoConfig.RemoteRepoHostKeys["client"];
+            var stdOutBuffer = new StringBuilder();
+            // Paths ending in direcotry separator characters return a null directory error.
+            string trimmedPath = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            await CliWrap.Cli.Wrap("p4")
+                // Dark magic explanation:
+                //
+                // The following command returns a non-empty line iff the path is currently in the workspace view.
+                //
+                // There is a branch in the logic that `where` returns, depending on if the path given is a local file,
+                // or if it is "." If you pass a local file, it will return the expected data and the %clientFile%
+                // variable. If you pass a valid directory, it will return "%path% - must refer to client '%client%'".
+                // Note that if you pass an invalid file, you'll get the %path% variable, but not the %client% variable,
+                // i.e., "Path '%path%' is not under client's root '%root%'.". Note that %client% is not returned on
+                // this error, so we use that variable instead.
+                //
+                // Putting both of these variables together means that at least one of them will be present if the file
+                // exists in the workspace view.
+                .WithArguments(
+                    $"-p {port} -u {username} -ztag -F %client%%clientFile% -c {clientName} where {trimmedPath}")
+                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteAsync();
+            return stdOutBuffer.ToString().Trim().Length > 0;
         }
 
         private static async Task<string> GetConcreteStream(string streamPath, string port, string username)
@@ -199,10 +218,25 @@ namespace CoreAPI.RemoteHosts
         }
 
         /// <summary>
+        /// Returns the client path associated with the given file, or null if the file is not within the workspace view.
+        /// </summary>
+        private static async Task<string?> GetLocalPath(RepoConfig repoConfig, string depotPath)
+        {
+            string port = repoConfig.RemoteRepoHostKeys["port"];
+            string username = repoConfig.RemoteRepoHostKeys["username"];
+            string client = repoConfig.RemoteRepoHostKeys["client"];
+            var stdOutBuffer = new StringBuilder();
+            await CliWrap.Cli.Wrap("p4")
+                .WithArguments($"-p {port} -u {username} -c {client} -ztag -F %path% where {depotPath}")
+                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteAsync();
+            return stdOutBuffer.Length > 0 ? stdOutBuffer.ToString().Trim() : null;
+        }
+
+        /// <summary>
         /// Returns the depot path for the given stream.
         /// </summary>
-        /// <param name="repoConfig"></param>
-        /// <returns></returns>
         private static async Task<string?> GetStream(RepoConfig repoConfig)
         {
             string port = repoConfig.RemoteRepoHostKeys["port"];
@@ -236,7 +270,7 @@ namespace CoreAPI.RemoteHosts
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
                 .WithValidation(CommandResultValidation.None)
                 .ExecuteAsync();
-            string serverId = stdOutBuffer.ToString();
+            string serverId = stdOutBuffer.ToString().Trim();
             stdOutBuffer.Clear();
 
             await CliWrap.Cli.Wrap("p4")
@@ -257,12 +291,22 @@ namespace CoreAPI.RemoteHosts
             {
                 return lines[0].Split(" = ")[1];
             }
+            string? fallbackServer = null;
             foreach (string line in lines)
             {
-                if (line.StartsWith($"P4.Swarm.Url.{serverId}"))
+                if (line.StartsWith("P4.Swarm.Url = ", StringComparison.OrdinalIgnoreCase))
                 {
-                    return lines[0].Split(" = ")[1];
+                    fallbackServer = line.Split(" = ")[1].Trim();
+                    continue;
                 }
+                if (line.StartsWith($"P4.Swarm.Url.{serverId}", StringComparison.OrdinalIgnoreCase))
+                {
+                    return line.Split(" = ")[1].Trim();
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(fallbackServer))
+            {
+                return fallbackServer;
             }
             throw new InvalidOperationException("Unable to determine the correct Swarm URL.");
         }

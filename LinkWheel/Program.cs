@@ -48,6 +48,10 @@ namespace LinkWheel
                 return 0;
             }
 
+# if DEBUG
+            File.WriteAllText(Path.Combine(LinkWheelConfig.DataDirectory, "invocation.txt"), Environment.CommandLine);
+# endif
+
             var parser = new Parser(settings => settings.EnableDashDash = true);
             List<IdelAction> actions = Task.Run(() => parser
                     .ParseArguments<Serve>(args)
@@ -58,7 +62,6 @@ namespace LinkWheel
 
             // TODO: Add a flag for enabling this, as well as better logging with timestamps
 #if DEBUG
-            File.WriteAllText(Path.Combine(LinkWheelConfig.DataDirectory, "invocation.txt"), Environment.CommandLine);
             File.WriteAllText(Path.Combine(LinkWheelConfig.DataDirectory, "lastLink.txt"),
                 string.Join('\n', actions.Select(action => $"Command: {action.Command}\nWorking Directory: {action.CommandWorkingDirectory}")));
 # endif
