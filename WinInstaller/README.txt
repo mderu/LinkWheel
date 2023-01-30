@@ -10,3 +10,7 @@ To create the installer, you need to do the following tasks by hand:
  8. (Optional) Add the .idelconfig from this repo's root to the resources
  9. (Optional, required if above was modified) Zip up and add the .ideld directory.
 10. Publish WinInstaller
+
+Edit 2023: I ran the following to build this last:
+
+    dotnet publish -r win-x64 /p:PublishSingleFile=true /p:IncludeNativeLibrariesInSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true -c release Path/To/WinInstaller.csproj

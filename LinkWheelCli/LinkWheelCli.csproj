@@ -2,8 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <StartupObject>LinkWheelCli.Program</StartupObject>
+    <ApplicationIcon>linkWheelIcon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="linkWheelIcon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CoreAPI\CoreAPI.csproj" />
