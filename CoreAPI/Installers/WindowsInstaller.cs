@@ -326,7 +326,7 @@ namespace CoreAPI.Installers
         /// </remarks>
         private static void WindowsImplementBrowserProtocols()
         {
-            string dllLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string dllLocation = System.AppContext.BaseDirectory;
             // Replaces the ".dll" extension with ".exe".
             string location = dllLocation[..^4] + ".exe";
             string appName = LinkWheelConfig.ApplicationName;

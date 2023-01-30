@@ -16,7 +16,7 @@ namespace CoreAPI.Cli
         [Option("url", HelpText = "If provided the URL to insert into the commandline, replacing any %1 within the commandline.")]
         public string? Url { get; set; }
 
-        public async Task<OutputData> ExecuteAsync()
+        public Task<OutputData> ExecuteAsync()
         {
             if (OperatingSystem.IsWindows())
             {
@@ -34,7 +34,11 @@ namespace CoreAPI.Cli
                     LinkWheelConfig.Registry.DefaultBrowserProgId);
                 if (classKey is null)
                 {
-                    return new(1, new(), $"Unable to open url {Url ?? ""}: the registry key {registryKey} does not exist.");
+                    return Task.FromResult(new OutputData(
+                        exitCode: 1,
+                        objects: new(),
+                        format: $"Unable to open url {Url ?? ""}: the registry key {registryKey} does not exist."
+                    ));
                 }
 
                 //TO(MAYBE)DO: Could read from HKEY_CLASSES_ROOT\LinkWheel\prev{key}, but that key includes the full path
@@ -61,11 +65,19 @@ namespace CoreAPI.Cli
                         }
                     }
                 }
-                return new(0, new() { ["array"] = arguments, ["commandline"] = commandline }, "(=commandline=)");
+                return Task.FromResult(new OutputData(
+                    exitCode: 0,
+                    objects: new() { ["array"] = arguments, ["commandline"] = commandline },
+                    format: "(=commandline=)"
+                ));
             }
             else
             {
-                return new(1, new(), "Have not figured out the best way to do this is Linux/OSX yet.");
+                return Task.FromResult(new OutputData(
+                    exitCode: 1,
+                    objects: new(),
+                    format: "Have not figured out the best way to do this is in *NIX yet."
+                ));
             }
         }
     }
