@@ -60,7 +60,7 @@ function activate(context) {
                     }
                     else {
                         let repoConfig = JSON.parse(stdout);
-                        registeredPaths.add(repoConfig.root);
+                        registeredPaths.add(repoConfig.results[0].root);
                         copyLinkToClipboard(path, startLine, endLine);
                     }
                 });

@@ -113,7 +113,7 @@ namespace CoreAPI.RemoteHosts
             }
             else
             {
-                remoteBranch = await GetCommitHash(localPathDirectory);
+                remoteBranch = await GetMostRecentOriginCommitHash(localPathDirectory);
             }
 
             Uri returnValue = new(Path.Combine(
@@ -150,11 +150,13 @@ namespace CoreAPI.RemoteHosts
             return (result.ExitCode == 0, result.ExitCode == 0 ? stdOutBuffer.ToString().Trim().Split("/")[1] : "");
         }
 
-        public static async Task<string> GetCommitHash(string directory)
+        // Notes on origin vs upstream: https://stackoverflow.com/a/9257901/6876989
+        public static async Task<string> GetMostRecentOriginCommitHash(string directory)
         {
             var stdOutBuffer = new StringBuilder();
-            var result = await CliWrap.Cli.Wrap("git")
-                .WithArguments("config rev-parse --abbrev-ref --symbolic-full-name \"@{u}\"")
+            // TODO: Handle the error caused by nothing being upstream.
+            await CliWrap.Cli.Wrap("git")
+                .WithArguments("rev-list origin -n 1")
                 .WithWorkingDirectory(directory)
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
                 .ExecuteAsync();
