@@ -40,7 +40,7 @@
     },
     "Url With Special Characters": {
       "commandName": "Project",
-      "commandLineArgs": "https://www.w3schools.com/action_page2.php?textA=foo%20bar&textB=baz"
+      "commandLineArgs": "serve --url \"https://www.w3schools.com/action_page2.php?textA=foo%20bar&textB=baz\" -- \"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\" --single-argument \"https://www.w3schools.com/action_page2.php?textA=foo%20bar&textB=baz\""
     },
     "LinkWheel VSCode with Special Characters": {
       "commandName": "Project",

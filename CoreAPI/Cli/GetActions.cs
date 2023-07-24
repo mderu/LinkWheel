@@ -59,7 +59,7 @@ namespace CoreAPI.Cli
         {
             string idelConfigPath = filePath;
             Dictionary<string, JObject> actions = new();
-            List<IdelAction> completedActions = new();
+            List<IdelAction> possibleActions = new();
 
             string prevWd = Directory.GetCurrentDirectory();
             // Forgiveness: filePath is always a file.
@@ -172,7 +172,7 @@ namespace CoreAPI.Cli
                     File = filePath,
                     Name = nameActionPair.Key
                 };
-                completedActions.Add(new IdelAction(
+                possibleActions.Add(new IdelAction(
                     priority: priority,
                     command: command,
                     title: title,
@@ -188,12 +188,12 @@ namespace CoreAPI.Cli
                 });
             }
             Directory.SetCurrentDirectory(prevWd);
-            return completedActions;
+            return possibleActions;
         }
 
         public async Task<List<IdelAction>> Get()
         {
-            List<IdelAction> completedActions = new();
+            List<IdelAction> possibleActions = new();
             List<RepoConfig> repoConfigs = RepoConfigs.All();
 
             if (RemoteRepoHosts.TryGetLocalPathFromUrl(new Uri(Url), repoConfigs, out Request? request))
@@ -205,11 +205,11 @@ namespace CoreAPI.Cli
                 Dictionary<string, IdelActionDefinition> culumulativeActionDefinitions = new();
                 Dictionary<string, IdelActionDefinition> tempDefinitions = new();
 
-                completedActions.AddRange(await GetActionsForFile(globalIdelConfigPath, request, culumulativeActionDefinitions));
-                completedActions.AddRange(await GetActionsForFile(repoIdelConfigPath, request, tempDefinitions));
+                possibleActions.AddRange(await GetActionsForFile(globalIdelConfigPath, request, culumulativeActionDefinitions));
+                possibleActions.AddRange(await GetActionsForFile(repoIdelConfigPath, request, tempDefinitions));
                 culumulativeActionDefinitions.Update(tempDefinitions);
-                completedActions.AddRange(await GetActionsForFile(userIdelConfigPath, request, culumulativeActionDefinitions));
-                completedActions = completedActions.GroupBy(action => action.Source?.Name ?? "").Select(list => list.Last()).ToList();
+                possibleActions.AddRange(await GetActionsForFile(userIdelConfigPath, request, culumulativeActionDefinitions));
+                possibleActions = possibleActions.GroupBy(action => action.Source?.Name ?? "").Select(list => list.Last()).ToList();
             }
 
             IconResult browserIcon = IconUtils.DefaultBrowserIcon;
@@ -224,11 +224,11 @@ namespace CoreAPI.Cli
             // We do this so we don't make all non-repo links slower to open (e.g., YouTube, Drive, Facebook, Amazon, etc).
             // The case where this is particularly bad is where the website linked to is slow or dead, and it eventually
             // gives up on finding an icon.
-            if (completedActions.Count == 0)
+            if (possibleActions.Count == 0)
             {
                 if (IconUtils.TryGetCachedWebsiteIconPath(new Uri(Url), out string? localCachePath))
                 {
-                    completedActions.Add(new IdelAction(
+                    possibleActions.Add(new IdelAction(
                         priority: -100,
                         command: CliUtils.JoinToCommandLine(BrowserArgs),
                         title: "Open in Browser",
@@ -239,7 +239,7 @@ namespace CoreAPI.Cli
                 }
                 else
                 {
-                    completedActions.Add(new IdelAction(
+                    possibleActions.Add(new IdelAction(
                         priority: -100,
                         command: CliUtils.JoinToCommandLine(BrowserArgs),
                         title: "Open in Browser",
@@ -252,7 +252,7 @@ namespace CoreAPI.Cli
             else
             {
                 IconResult urlIcon = IconUtils.GetIconForUrl(Url);
-                completedActions.Add(new IdelAction(
+                possibleActions.Add(new IdelAction(
                     priority: -100,
                     command: CliUtils.JoinToCommandLine(BrowserArgs),
                     title: "Open in Browser",
@@ -266,7 +266,7 @@ namespace CoreAPI.Cli
                 });
             }
 
-            return completedActions;
+            return possibleActions;
         }
 
         private static bool IsEnabled()

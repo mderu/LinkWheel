@@ -1,5 +1,7 @@
-﻿using CommandLine;
+﻿using CliWrap;
+using CommandLine;
 using CoreAPI.OutputFormat;
+using CoreAPI.Utils;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -22,11 +24,7 @@ namespace CoreAPI.Cli
                 var browserArgsOutput = await new GetBrowserArgs() { Url = Url }.ExecuteAsync();
                 string[] arguments = (string[])browserArgsOutput.Objects["array"];
 
-                ProcessStartInfo startInfo = new(arguments[0], string.Join(" ", arguments[1..]))
-                {
-                    UseShellExecute = true,
-                };
-                Process.Start(startInfo);
+                CliUtils.SimpleInvoke(CliUtils.JoinToCommandLine(arguments), null);
                 return new(0, new(), "");
             }
             else

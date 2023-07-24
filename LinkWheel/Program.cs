@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using CoreAPI.Config;
 using System.Linq;
+using CoreAPI.Utils;
 
 // Links provided to make testing easier:
 // http://www.google.com (for the case where we don't want to intercept).
@@ -89,19 +90,7 @@ namespace LinkWheel
                     arguments = command[(fileName.Length + 1)..];
                 }
 
-                Process process = new()
-                {
-                    EnableRaisingEvents = true,
-                    StartInfo = new ProcessStartInfo
-                    {
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        FileName = fileName,
-                        WorkingDirectory = actions[0].CommandWorkingDirectory,
-                        Arguments = arguments
-                    },
-                };
-                process.Start();
+                CliUtils.SimpleInvoke(command, actions[0].CommandWorkingDirectory);
             }
             else
             {

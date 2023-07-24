@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using CoreAPI.Models;
 
 namespace CoreAPI.Utils
 {
@@ -61,12 +62,14 @@ namespace CoreAPI.Utils
                     result.Append('\"');
                     result.Append(arg
                         .Replace("\"", "\\\"")
+                        .Replace("%", "%%")
                         .Replace("&", "^&"));
                     result.Append('\"');
                 }
                 else
                 {
                     result.Append(arg
+                        .Replace("%", "%%")
                         .Replace("&", "^&"));
                 }
                 result.Append(' ');
@@ -81,9 +84,15 @@ namespace CoreAPI.Utils
         /// <summary>
         /// Writes the script to a temp file and executes it.
         /// Hopefully cleans it up afterwards.
+        /// 
+        /// This is absolutely terrible code and relies on the input to be a batch script. As
+        /// such, all <see cref="IdelAction.Command"/>s must be valid bash/batch programs, because there is
+        /// no way to differentiate Browser kick-off commands from user-specified batch commands.
+        /// 
+        /// This forces <see cref="JoinToCommandLine"/> to coerce cli arg arrays into bash/batch programs.
         /// </summary>
         /// <param name="batchScriptContents"></param>
-        public static void SimpleInvoke(string batchScriptContents, string workingDirectory)
+        public static void SimpleInvoke(string batchScriptContents, string? workingDirectory)
         {
             if (OperatingSystem.IsWindows())
             {
