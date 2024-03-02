@@ -77,9 +77,8 @@ namespace CoreAPI.Icons
             }
             else
             {
-                throw new Exception(
-                    $"I don't know how to parse the icon for the string `{userRequestString}`. " +
-                    $"It's not a file or URL.");
+                // If the file does not exist locally, fall back to the icon for its extension type.
+                return JumboIcons.GetJumboIcon(Path.GetExtension(userRequestString), shouldCache: true);
             }
         }
 
