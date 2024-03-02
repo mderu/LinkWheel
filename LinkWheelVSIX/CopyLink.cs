@@ -1,11 +1,15 @@
 ﻿using CliWrap;
 using EnvDTE;
+using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Task = System.Threading.Tasks.Task;
 
@@ -30,6 +34,8 @@ namespace LinkWheelVS
         /// VS Package that provides this command, not null.
         /// </summary>
         private readonly AsyncPackage package;
+
+        private DTE2 dte2;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CopyLink"/> class.
@@ -78,7 +84,15 @@ namespace LinkWheelVS
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
+
+
             Instance = new CopyLink(package, commandService);
+            await Instance.InitializeSelfAsync();
+        }
+
+        private async Task InitializeSelfAsync()
+        {
+            dte2 = await ServiceProvider.GetServiceAsync(typeof(SDTE)) as DTE2;
         }
 
         /// <summary>
@@ -92,43 +106,22 @@ namespace LinkWheelVS
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-
-            DTE dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
-            TextSelection textSelection = (TextSelection)dte.ActiveDocument.Selection;
+            TextSelection textSelection = (TextSelection)dte2.ActiveDocument.Selection;
 
             // TODO: Implement caching (don't always register the path)
             var stdOutBuffer = new StringBuilder();
             var stdErrBuffer = new StringBuilder();
-            var result = Cli.Wrap("linkWheelCli")
-                .WithArguments($"register --path {dte.ActiveDocument.FullName} ")
+            var registerResult = Cli.Wrap("linkWheelCli")
+                .WithArguments($"register --path \"{dte2.ActiveDocument.FullName}\" ")
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
                 .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
                 .WithValidation(CommandResultValidation.None)
                 .ExecuteAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
-            if (result.ExitCode == 0)
+            if (registerResult.ExitCode != 0)
             {
-                stdOutBuffer.Clear();
-                stdErrBuffer.Clear();
-                result = Cli.Wrap("linkWheelCli")
-                    .WithArguments(
-                        $"get-url --file {dte.ActiveDocument.FullName} "
-                            + $"--start-line {textSelection.TopLine} "
-                            + (textSelection.TopLine != textSelection.BottomLine ? $"--end-line {textSelection.BottomLine} " : ""))
-                    .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
-                    .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
-                    .WithValidation(CommandResultValidation.None)
-                    .ExecuteAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-
-            if (result.ExitCode == 0)
-            {
-                Clipboard.SetText(stdOutBuffer.ToString().Trim());
-            }
-            else
-            {
-                string message = string.Format(CultureInfo.CurrentCulture, "Error getting link: " + stdOutBuffer + "\n" + stdErrBuffer, GetType().FullName);
-                string title = "Copy Error";
+                string message = string.Format(CultureInfo.CurrentCulture, "Unable to register: " + stdOutBuffer + "\n" + stdErrBuffer, GetType().FullName);
+                string title = "Copy To Clipboard Error -- Register";
 
                 // Show a message box to prove we were here
                 VsShellUtilities.ShowMessageBox(
@@ -140,6 +133,36 @@ namespace LinkWheelVS
                     OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
             }
 
+            stdOutBuffer.Clear();
+            stdErrBuffer.Clear();
+            var getUrlResult = Cli.Wrap("linkWheelCli")
+                .WithArguments(
+                    $"get-url --file \"{dte2.ActiveDocument.FullName}\" "
+                        + $"--start-line {textSelection.TopLine} "
+                        + (textSelection.TopLine != textSelection.BottomLine ? $"--end-line {textSelection.BottomLine} " : ""))
+                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+            if (getUrlResult.ExitCode == 0)
+            {
+                Clipboard.SetText(stdOutBuffer.ToString().Trim());
+            }
+            else
+            {
+                string message = string.Format(CultureInfo.CurrentCulture, "Error getting link: " + stdOutBuffer + "\n" + stdErrBuffer, GetType().FullName);
+                string title = "Copy To Clipboard Error -- Get URL";
+
+                // Show a message box to prove we were here
+                VsShellUtilities.ShowMessageBox(
+                    this.package,
+                    message,
+                    title,
+                    OLEMSGICON.OLEMSGICON_INFO,
+                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            }
         }
     }
 }
