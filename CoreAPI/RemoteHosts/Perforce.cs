@@ -332,53 +332,5 @@ namespace CoreAPI.RemoteHosts
             
             return (port: variables[0], username: variables[1]);
         }
-
-        private static async Task<string[]> GetLocalP4Roots(string port, string user)
-        {
-            var stdOutBuffer = new StringBuilder();
-            var result = await CliWrap.Cli.Wrap("p4")
-                .WithArguments($"-p {port} -u {user} -F %domainMount% clients -u {user}")
-                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
-                .WithValidation(CommandResultValidation.None)
-                .ExecuteAsync();
-
-            // TODO: Call the following on each, and check to make sure the hostname matches:
-            //     p4 -ztag -F %Host% -c {clientName} client -o
-            // filter out any entries that don't match.
-
-            return stdOutBuffer.ToString().Trim().Split(Environment.NewLine);
-        }
-
-        private static async Task<List<(string port, string username)>> GetP4Logins()
-        {
-            var stdOutBuffer = new StringBuilder();
-            var result = await CliWrap.Cli.Wrap("p4")
-                .WithArguments("tickets")
-                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
-                .WithValidation(CommandResultValidation.None)
-                .ExecuteAsync();
-
-            string contents = stdOutBuffer.ToString().Trim();
-
-            if (contents.Length == 0 || result.ExitCode != 0)
-            {
-                return new();
-            }
-
-            List<(string port, string username)> results = new();
-
-            // Example line:
-            // perforce:1666 (username) 50E4385D7DE7B93A198D801D08EE4568
-            Regex p4TicketParser = new(@"(?<port>\S+) \((?<username>\S+)\) \S+");
-            foreach (string line in contents.Split(Environment.NewLine))
-            {
-                var match = p4TicketParser.Match(line);
-                if (match.Success)
-                {
-                    results.Add((match.Groups["port"].Value, match.Groups["username"].Value));
-                }
-            }
-            return results;
-        }
     }
 }
