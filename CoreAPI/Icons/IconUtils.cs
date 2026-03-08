@@ -72,8 +72,7 @@ namespace CoreAPI.Icons
             }
             else if (FileUtils.TryGetInstalledExe(userRequestString, out string? exePath))
             {
-                // Forgiveness: will be non-null if found.
-                return JumboIcons.GetJumboIcon(exePath!, shouldCache: true);
+                return JumboIcons.GetJumboIcon(exePath, shouldCache: true);
             }
             else
             {

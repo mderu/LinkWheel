@@ -30,8 +30,7 @@ namespace CoreAPI.Cli
 
             if (TaskUtils.Try(await RemoteRepoHosts.TryGetRemoteLinkFromPath(this, repoConfigs), out RepoConfig? repoConfig, out Uri? remoteLink))
             {
-                // Forgiveness: above try passes, so both can be forgiven.
-                return new(0, new() { ["repoConfig"] = repoConfig!, ["url"] = remoteLink!.ToString() }, "(=url=)");
+                return new(0, new() { ["repoConfig"] = repoConfig, ["url"] = remoteLink.ToString() }, "(=url=)");
             }
             return new(1, new(), "");
         }

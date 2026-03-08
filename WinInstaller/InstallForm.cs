@@ -1,10 +1,14 @@
-﻿using CoreAPI.Config;
+﻿using CliWrap;
+using CoreAPI.Cli;
+using CoreAPI.Config;
 using CoreAPI.Utils;
 using Microsoft.Win32;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinInstaller.Properties;
 
@@ -80,7 +84,18 @@ namespace WinInstaller
                 statusLabel.Text = "Installing LinkWheel executables";
                 WipeInstallDirectory();
                 UnpackResource(Resources.LinkWheelZip, InstallPath);
-                CliUtils.SimpleInvoke("linkWheelCli.exe install", InstallPath);
+
+                StringBuilder stdoutStringBuilder = new();
+                StringBuilder stderrStringBuilder = new();
+
+                Task.Run(async () => await Cli
+                    .Wrap(Path.Combine(InstallPath, "linkWheelCli.exe"))
+                    .WithArguments(new string[] { "install", InstallPath }, escape: true)
+                    .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdoutStringBuilder))
+                    .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderrStringBuilder))
+                    .ExecuteAsync());
+
+                Task.Run(() => { });
             }
             if (visualStudioCheckbox.Checked)
             {

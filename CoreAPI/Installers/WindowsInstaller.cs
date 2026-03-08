@@ -25,10 +25,7 @@ namespace CoreAPI.Installers
 
         public void EnsureInstalled()
         {
-            if (!IsInstalled())
-            {
-                ForceInstall();
-            }
+            ForceInstall();
         }
 
         public bool IsInstalled()
@@ -182,12 +179,18 @@ namespace CoreAPI.Installers
                 }
                 string[] prevArgs = CliUtils.CommandLineToArgs(prevCmdline);
                 Regex endsWithLinkWheelExe = new(@"linkWheel\.exe""?$", RegexOptions.IgnoreCase);
+
+                if (!FileUtils.TryGetInstalledExe("LinkWheel.exe", out string? linkWheelPath))
+                {
+                    throw new InvalidProgramException("Path has been updated, but cannot be found.");
+                }
+
                 if (endsWithLinkWheelExe.IsMatch(prevArgs[0]))
                 {
                     // If a previous version of LinkWheel is already installed, update the string in case the path
                     // has changed.
                     var addedArgs = classKey.GetValue($"prev{browserClass}", "");
-                    Registry.SetValue(cmdlineRegistryUserPath, "", $"\"{executablePath}\" serve --url %1 -- {addedArgs}");
+                    Registry.SetValue(cmdlineRegistryUserPath, "", $"{linkWheelPath} serve --url %1 -- {addedArgs}");
                 }
                 else
                 {
@@ -197,7 +200,7 @@ namespace CoreAPI.Installers
                     classKey.SetValue($"prev{cmdlineRegistryPath}", prevCmdline);
                     // Set the current user's shell/open/command value. If the browser is installed at the machine level,
                     // it probably won't bother touching this key during updates/re-installs.
-                    Registry.SetValue(cmdlineRegistryUserPath, "", $"\"{executablePath}\" serve --url %1 -- {prevCmdline}");
+                    Registry.SetValue(cmdlineRegistryUserPath, "", $"{linkWheelPath} serve --url %1 -- {prevCmdline}");
                 }
             }
         }

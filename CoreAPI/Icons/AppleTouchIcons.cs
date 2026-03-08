@@ -86,7 +86,6 @@ namespace CoreAPI.Icons
             if (icon is not null)
             {
                 Directory.CreateDirectory(LinkWheelConfig.IconCachePath);
-                // Forgiveness: iconIsMissing is always true if icon can be null.
                 icon.Save(localCachePath);
                 return new(icon, localCachePath);
             }

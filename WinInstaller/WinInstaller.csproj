@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.4.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CoreAPI\CoreAPI.csproj" />
   </ItemGroup>
 

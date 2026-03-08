@@ -8,7 +8,7 @@
 		"url": "https://github.com/mderu/LinkWheel/"
 	},
 	"engines": {
-		"vscode": "^1.61.0"
+		"vscode": "^1.85.0"
 	},
 	"categories": [
 		"Other"
@@ -43,7 +43,7 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.61.0",
+		"@types/vscode": "^1.85.0",
 		"@types/glob": "^7.1.4",
 		"@types/mocha": "^9.0.0",
 		"@types/node": "14.x",
