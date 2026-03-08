@@ -71,40 +71,36 @@ namespace CoreAPI.RemoteHosts
                 return (false, null);
             }
 
-            var logins = await GetP4Logins();
+            // Get P4PORT and P4USER from p4 set in the target directory
+            var (port, username) = await GetP4Login(localRepoRoot);
 
-            List<Task> getAllSwarmUrlTasks = new();
-
-            for (int i = 0; i < logins.Count; i++)
+            string? swarmUrl = await GetSwarmUrl(port, username);
+            if (swarmUrl is null)
             {
-                (string port, string username) = logins[i];
-                string? swarmUrl = await GetSwarmUrl(port, username);
-                if (swarmUrl is null)
-                {
-                    continue;
-                }
-                List<(string clientName, string path)> clients = await GetClientsForServer(port, username);
+                return (false, null);
+            }
+            
+            List<(string clientName, string path)> clients = await GetClientsForServer(port, username);
 
-                foreach((string clientName, string path) in clients)
+            foreach((string clientName, string path) in clients)
+            {
+                RepoConfig potentialConfig = new()
                 {
-                    RepoConfig potentialConfig = new()
+                    Root = path,
+                    RemoteRootUrl = swarmUrl,
+                    RemoteRepoHostKeys = new Dictionary<string, string>()
                     {
-                        Root = path,
-                        RemoteRootUrl = swarmUrl,
-                        RemoteRepoHostKeys = new Dictionary<string, string>()
-                        {
-                            ["port"] = port,
-                            ["username"] = username,
-                            ["client"] = clientName,
-                        },
-                        RawRemoteRepoHostType = nameof(Perforce),
-                        RemoteRootRegex = $"{Regex.Escape(swarmUrl)}",
-                    };
+                        ["port"] = port,
+                        ["username"] = username,
+                        ["client"] = clientName,
+                    },
+                    RawRemoteRepoHostType = nameof(Perforce),
+                    RemoteRootRegex = $"{Regex.Escape(swarmUrl)}",
+                };
 
-                    if (await IsPathInWorkspaceView(potentialConfig, localRepoRoot))
-                    {
-                        return (true, potentialConfig);
-                    }
+                if (await IsPathInWorkspaceView(potentialConfig, localRepoRoot))
+                {
+                    return (true, potentialConfig);
                 }
             }
 
@@ -320,6 +316,21 @@ namespace CoreAPI.RemoteHosts
                 .WithValidation(CommandResultValidation.None)
                 .ExecuteAsync();
             return stdOutBuffer.ToString().Trim().Length != 0;
+        }
+
+        private static async Task<(string port, string username)> GetP4Login(string directory)
+        {
+            var stdOutBuffer = new StringBuilder();
+            await CliWrap.Cli.Wrap("p4")
+                .WithArguments(new[] { "-z", "'%serverAddress%|%userName%'", "info" })
+                .WithWorkingDirectory(directory)
+                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteAsync();
+
+            string[] variables = stdOutBuffer.ToString().Trim().Split('|');
+            
+            return (port: variables[0], username: variables[1]);
         }
 
         private static async Task<string[]> GetLocalP4Roots(string port, string user)
