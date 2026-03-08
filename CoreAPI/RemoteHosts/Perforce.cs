@@ -2,7 +2,6 @@
 using CoreAPI.Cli;
 using CoreAPI.Config;
 using CoreAPI.Models;
-using CoreAPI.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
