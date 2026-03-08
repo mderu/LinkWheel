@@ -107,9 +107,10 @@ namespace CoreAPI.Utils
                         UseShellExecute = false,
                         CreateNoWindow = true,
                         FileName = tempFileName,
-                        WorkingDirectory = workingDirectory,
+                        WorkingDirectory = workingDirectory ?? "",
                     },
                 };
+
                 // Delete the temp file when done.
                 process.Exited += (object? _, EventArgs _) =>
                 {
