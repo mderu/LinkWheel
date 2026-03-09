@@ -7,8 +7,6 @@ using CoreAPI.Installers;
 using LinkWheel.Cli;
 using CoreAPI.Models;
 using System.IO;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
 using CoreAPI.Config;
 using System.Linq;
 using CoreAPI.Utils;
@@ -41,9 +39,10 @@ namespace LinkWheel
             // run an install command before being able to use the executable.
             Installer.EnsureInstalled();
 
-            string[] args = Environment.GetCommandLineArgs()[1..];
+            // Remove executable and "serve".
+            string[] serveArgs = Environment.GetCommandLineArgs()[2..];
 
-            if (args.Length == 0)
+            if (serveArgs.Length == 0)
             {
                 // Do nothing if there are no args. TODO: Show a version number dialog or something, idk.
                 return 0;
@@ -55,7 +54,7 @@ namespace LinkWheel
 
             var parser = new Parser(settings => settings.EnableDashDash = true);
             List<IdelAction> actions = Task.Run(() => parser
-                    .ParseArguments<Serve>(args)
+                    .ParseArguments<Serve>(serveArgs)
                     .MapResult(
                         (Serve verb) => verb.ExecuteAsync(),
                         errs => Task.FromResult(new List<IdelAction>())
@@ -74,22 +73,7 @@ namespace LinkWheel
             else if (actions.Count == 1)
             {
                 // Don't open the option wheel if there's only one option.
-                // TODO: A library might handle argument parsing better.
                 string command = actions[0].Command.Trim();
-                Regex word = new(@"\S+");
-                string fileName;
-                string arguments;
-                if (command.StartsWith('"'))
-                {
-                    fileName = command[1..command.IndexOf('"', 1)];
-                    arguments = command[(command.IndexOf('"', 1) + 1)..];
-                }
-                else
-                {
-                    fileName = word.Match(command).Value;
-                    arguments = command[(fileName.Length + 1)..];
-                }
-
                 CliUtils.SimpleInvoke(command, actions[0].CommandWorkingDirectory);
             }
             else

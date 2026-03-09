@@ -1,7 +1,6 @@
 ﻿using CommandLine;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 using CoreAPI.Cli;
 using CoreAPI.Models;
 
@@ -18,18 +17,11 @@ namespace LinkWheel.Cli
         public string Url { get; set; } = "";
 
         [Value(0)]
-        public IEnumerable<string> BrowserArgs { get; set; } = new List<string>();
+        public IEnumerable<string> BrowserArgs { get; set; } = [];
 
         public async Task<List<IdelAction>> ExecuteAsync()
         {
-            // TODO: I have no idea why "serve" gets picked up here, but in get-actions the verb doesn't,
-            // but I really don't have the time to deal with this right now. This is a hack to remove the
-            // verb from the list of arguments.
             var browserArgs = BrowserArgs;
-            if (browserArgs.First() == "serve")
-            {
-                browserArgs = browserArgs.Skip(1);
-            }
             return await new GetActions()
             {
                 Url = Url,
