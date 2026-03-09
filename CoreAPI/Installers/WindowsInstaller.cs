@@ -25,7 +25,10 @@ namespace CoreAPI.Installers
 
         public void EnsureInstalled()
         {
-            ForceInstall();
+            if (!IsInstalled())
+            {
+                ForceInstall();
+            }
         }
 
         public bool IsInstalled()
