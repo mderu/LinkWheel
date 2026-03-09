@@ -242,9 +242,6 @@ namespace CoreAPI.Installers
         private static void RevertBrowserShellCommands()
         {
             string[] args = Environment.GetCommandLineArgs();
-            // Dumb hack for running while debugging. Use the EXE instead of the DLL so we don't need to kick off with
-            // dotnet.exe.
-            string executablePath = args[0].EndsWith(".dll") ? args[0][..^4] + ".exe" : args[0];
 
             var browserClasses = GetAllBrowserRegistryClassPaths();
             foreach (var browserClass in browserClasses)
@@ -322,81 +319,6 @@ namespace CoreAPI.Installers
             }
 
             return browserClasses.ToList();
-        }
-
-        /// <remarks>
-        /// This is some untested code to theoretically install LinkWheel as a browser.
-        /// 
-        /// We may need to implement this instead if shell/open/command is being refreshed by
-        /// something else (e.g., browser updates).
-        /// </remarks>
-        private static void WindowsImplementBrowserProtocols()
-        {
-            string dllLocation = System.AppContext.BaseDirectory;
-            // Replaces the ".dll" extension with ".exe".
-            string location = dllLocation[..^4] + ".exe";
-            string appName = LinkWheelConfig.ApplicationName;
-            if (Registry.LocalMachine.OpenSubKey(@$"SOFTWARE\Classes\{appName}") == null)
-            {
-                using (var key = Registry.CurrentUser.CreateSubKey(@$"SOFTWARE\Classes\{appName}"))
-                {
-                    key.SetValue(string.Empty, $"URL:{appName} Protocol");
-                    key.SetValue("URL Protocol", string.Empty);
-
-                    using (var defaultIcon = key.CreateSubKey("DefaultIcon"))
-                    {
-                        defaultIcon.SetValue("", $"{location},1");
-                    }
-
-                    using (var commandKey = key.CreateSubKey(@"shell\open\command"))
-                    {
-                        commandKey.SetValue("", "\"" + location + "\" \"%1\"");
-                    }
-                }
-            }
-
-            using (var key = Registry.LocalMachine.CreateSubKey(@$"SOFTWARE\Classes\LinkWheel"))
-            {
-                using var webBrowser = key.CreateSubKey("Capabilities");
-                webBrowser.SetValue("ApplicationDescription", "More options for the same link.");
-                webBrowser.SetValue("ApplicationName", "Link Wheel");
-                webBrowser.SetValue("Hidden", "0");
-
-                using var urlAssociations = webBrowser.CreateSubKey("UrlAssociations");
-                urlAssociations.SetValue("http", "LinkWheel.Url.Http");
-                urlAssociations.SetValue("https", "LinkWheel.Url.Https");
-            }
-
-            using (var progId = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Classes\LinkWheel.Url.Http"))
-            {
-                progId.SetValue("", "Link Wheel");
-                progId.SetValue("AllowSilentDefaultTakeOver", "1");
-                using (var defaultIcon = progId.CreateSubKey("DefaultIcon"))
-                {
-                    defaultIcon.SetValue("", dllLocation + ",1");
-                }
-
-                using (var commandKey = progId.CreateSubKey(@"shell\open\command"))
-                {
-                    commandKey.SetValue("", $"\"{location}\" \"%1\"");
-                }
-            }
-
-            using (var progId = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Classes\LinkWheel.Url.Https"))
-            {
-                progId.SetValue("", "Link Wheel");
-                progId.SetValue("AllowSilentDefaultTakeOver", "1");
-                using (var defaultIcon = progId.CreateSubKey("DefaultIcon"))
-                {
-                    defaultIcon.SetValue("", dllLocation + ",1");
-                }
-
-                using (var commandKey = progId.CreateSubKey(@"shell\open\command"))
-                {
-                    commandKey.SetValue("", $"\"{location}\" \"%1\"");
-                }
-            }
-            SHChangeNotifyWrapper.SHChangeNotify(HChangeNotifyEventID.SHCNE_ASSOCCHANGED, HChangeNotifyFlags.SHCNF_DWORD | HChangeNotifyFlags.SHCNF_FLUSH, IntPtr.Zero, IntPtr.Zero);
         }
     }
 #pragma warning restore CA1416 // Validate platform compatibility
