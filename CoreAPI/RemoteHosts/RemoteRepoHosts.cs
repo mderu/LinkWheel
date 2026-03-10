@@ -35,19 +35,13 @@ namespace CoreAPI.RemoteHosts
 
             foreach (Type type in hostTypes)
             {
-                HostPriorityAttribute? attribute = type.GetCustomAttribute<HostPriorityAttribute>();
-                if (attribute is null)
-                {
-                    throw new Exception(
+                HostPriorityAttribute? attribute = type.GetCustomAttribute<HostPriorityAttribute>()
+                    ?? throw new Exception(
                         $"All inheritors of {nameof(RemoteRepoHost)} must have a {nameof(HostPriorityAttribute)}," +
                         $"but {type.FullName} does not have this attribute.");
-                }
                 priorities.Add(attribute.Priority);
-                var instance = (RemoteRepoHost?)Activator.CreateInstance(type);
-                if (instance is null)
-                {
-                    throw new InvalidOperationException($"{type.FullName} needs to be instantiatable.");
-                }
+                var instance = (RemoteRepoHost?)Activator.CreateInstance(type)
+                    ?? throw new InvalidOperationException($"{type.FullName} needs to be instantiatable.");
                 objects.Add(instance);
             }
             return objects
@@ -63,7 +57,7 @@ namespace CoreAPI.RemoteHosts
             List<Assembly> results = new();
             foreach (var dllPath in dllPaths)
             {
-                PluginLoadContext loadContext = new PluginLoadContext(dllPath);
+                PluginLoadContext loadContext = new(dllPath);
                 results.Add(
                     loadContext.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(dllPath))));
             }
