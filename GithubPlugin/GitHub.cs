@@ -105,14 +105,12 @@ namespace GitHubPlugin
                 blobOrTree = "tree";
             }
 
-            string remoteBranch;
-            // Forgiveness: we know fullPath is not a directory, so it must have a parent directory.
-            string localPathDirectory = isDirectory ? fullPath : Path.GetDirectoryName(fullPath)!;
-            if (TaskUtils.Try(await GetRemoteBranch(localPathDirectory), out remoteBranch))
-            {
+            string localPathDirectory = isDirectory
+                ? fullPath
+                : Path.GetDirectoryName(fullPath)
+                    ?? fullPath;
 
-            }
-            else
+            if (!TaskUtils.Try(await GetRemoteBranch(localPathDirectory), out string remoteBranch))
             {
                 remoteBranch = await GetMostRecentOriginCommitHash(localPathDirectory);
             }
