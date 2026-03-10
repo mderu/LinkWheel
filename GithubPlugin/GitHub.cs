@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,9 +8,10 @@ using CliWrap;
 using CoreAPI.Cli;
 using CoreAPI.Config;
 using CoreAPI.Models;
+using CoreAPI.RemoteHosts;
 using CoreAPI.Utils;
 
-namespace CoreAPI.RemoteHosts
+namespace GitHubPlugin
 {
     [HostPriority(0)]
     class GitHub : RemoteRepoHost
