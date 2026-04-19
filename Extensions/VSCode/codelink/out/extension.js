@@ -21,7 +21,7 @@ function copyLinkToClipboard(path, startLine, endLine) {
     cp.exec(`linkWheelCli get-url `
         + `--file ${path} `
         + `--start-line ${startLine}`
-        + (endLine == startLine ? "" : ` --end-line ${endLine}`), (err, stdout, stderr) => {
+        + (endLine === startLine ? "" : ` --end-line ${endLine}`), (err, stdout, stderr) => {
         if (err) {
             vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`);
         }
@@ -41,14 +41,14 @@ function activate(context) {
         // The code you place here will be executed every time your command is executed
         // Display a message box to the user
         let editor = vscode.window.activeTextEditor;
-        if (editor == null) {
+        if (editor === null || editor === undefined) {
             vscode.window.showErrorMessage(`Unable to link: no active text editor.`);
             return;
         }
         // Magic Number Explanation: the lines come back zero-indexed, but UIs start with line 1 instead of 0.
         let startLine = editor.selection.start.line + 1;
         let endLine = editor.selection.end.line + 1;
-        if (vscode.window.activeTextEditor != null) {
+        if (vscode.window.activeTextEditor !== null && vscode.window.activeTextEditor !== undefined) {
             let path = vscode.window.activeTextEditor?.document.fileName;
             if (isRegistered(path)) {
                 copyLinkToClipboard(path, startLine, endLine);

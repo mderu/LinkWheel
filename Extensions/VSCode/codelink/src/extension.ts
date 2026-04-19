@@ -24,7 +24,7 @@ function copyLinkToClipboard(path : string, startLine : number, endLine : number
 		`linkWheelCli get-url `
 		 + `--file ${path} `
 		 + `--start-line ${startLine}`
-		 + (endLine == startLine ? "": ` --end-line ${endLine}`),
+		 + (endLine === startLine ? "": ` --end-line ${endLine}`),
 		(err: any, stdout: string, stderr: string) => {
 			if (err) {
 				vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`);
@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		let editor = vscode.window.activeTextEditor;
 
-		if (editor == null) {
+		if (editor === null || editor === undefined) {
 			vscode.window.showErrorMessage(`Unable to link: no active text editor.`);
 			return;
 		}
@@ -58,7 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let startLine = editor.selection.start.line + 1;
 		let endLine = editor.selection.end.line + 1;
 
-		if (vscode.window.activeTextEditor != null) {
+		if (vscode.window.activeTextEditor !== null && vscode.window.activeTextEditor !== undefined) {
 			let path: string = vscode.window.activeTextEditor?.document.fileName;
 			if (isRegistered(path)) {
 				copyLinkToClipboard(
@@ -71,11 +71,11 @@ export function activate(context: vscode.ExtensionContext) {
 				cp.exec(`linkWheelCli register --path ${path}`,
 				(err: any, stdout: string, stderr: string) => {
 					if (err) {
-						vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`)
+						vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`);
 					}
 					else {
-						let repoConfig = JSON.parse(stdout)
-						registeredPaths.add(repoConfig.results[0].root)
+						let repoConfig = JSON.parse(stdout);
+						registeredPaths.add(repoConfig.results[0].root);
 
 						copyLinkToClipboard(
 							path,
