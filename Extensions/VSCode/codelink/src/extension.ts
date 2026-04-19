@@ -4,12 +4,15 @@ import * as vscode from 'vscode';
 import * as cp from 'child_process';
 
 function copyLinkToClipboard(path : string, startLine : number, endLine : number) {
-	cp.exec(
-		`linkWheelCli get-url `
+
+	let commandline = `linkWheelCli get-url `
 		 + `--file ${path} `
-		 + `--register`
+		 + `--register `
 		 + `--start-line ${startLine}`
-		 + (endLine === startLine ? "": ` --end-line ${endLine}`),
+		 + (endLine === startLine ? "": ` --end-line ${endLine}`)
+
+	cp.exec(
+		commandline,
 		(err: any, stdout: string, stderr: string) => {
 			if (err) {
 				vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`);
