@@ -9,13 +9,14 @@ using System.Threading.Tasks;
 
 namespace CoreAPI.Cli
 {
-    [Verb("get-url", HelpText = HelpText)]
+    [Verb("get-url", HelpText = GetUrlHelpText)]
     public class GetUrl
     {
-        public const string HelpText = "Returns the URL for a given local --file, with optional --start-line" +
+        public const string GetUrlHelpText = "Returns the URL for a given local --file, with optional --start-line" +
             "and --end-line.";
 
-        [Option("file", Required = true)]
+        public const string FileHelpText = "The file to get the URL for.";
+        [Option("file", Required = true, HelpText = FileHelpText)]
         public string File { get; set; } = "";
 
         [Option("start-line")]
@@ -24,7 +25,9 @@ namespace CoreAPI.Cli
         [Option("end-line")]
         public int? EndLine { get; set; }
 
-        [Option("register", Default = false)]
+        public const string RegisterHelpText =
+            "Whether to attempt to register the repo if the given file is not already part of a registered repo.";
+        [Option("register", Default = false, HelpText = RegisterHelpText)]
         public bool Register { get; set; }
 
         public async Task<OutputData> ExecuteAsync()
