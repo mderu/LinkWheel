@@ -2,27 +2,12 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
-import * as pathUtils from 'path';
-
-
-let registeredPaths: Set<string> = new Set();
-
-// Technically it could be registered, but the plugin doesn't know yet.
-function isRegistered(path : string) {
-	for (let registeredPath of registeredPaths) {
-		let relative = pathUtils.relative(registeredPath, path);
-		if (relative && !relative.startsWith('..') && !pathUtils.isAbsolute(relative)) {
-			return true;
-		}
-	}
-	return false;
-}
-
 
 function copyLinkToClipboard(path : string, startLine : number, endLine : number) {
 	cp.exec(
 		`linkWheelCli get-url `
 		 + `--file ${path} `
+		 + `--register`
 		 + `--start-line ${startLine}`
 		 + (endLine === startLine ? "": ` --end-line ${endLine}`),
 		(err: any, stdout: string, stderr: string) => {
@@ -60,31 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		if (vscode.window.activeTextEditor !== null && vscode.window.activeTextEditor !== undefined) {
 			let path: string = vscode.window.activeTextEditor?.document.fileName;
-			if (isRegistered(path)) {
-				copyLinkToClipboard(
-					path,
-					startLine,
-					endLine
-				);
-			}
-			else {
-				cp.exec(`linkWheelCli register --path ${path}`,
-				(err: any, stdout: string, stderr: string) => {
-					if (err) {
-						vscode.window.showErrorMessage(`Unable to link to the given line: ${err}: ${stderr}`);
-					}
-					else {
-						let repoConfig = JSON.parse(stdout);
-						registeredPaths.add(repoConfig.results[0].root);
-
-						copyLinkToClipboard(
-							path,
-							startLine,
-							endLine
-						);
-					}
-				});
-			}
+			copyLinkToClipboard(path, startLine, endLine);
 		}
 	});
 
