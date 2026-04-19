@@ -24,6 +24,9 @@ namespace CoreAPI.Cli
         [Option("end-line")]
         public int? EndLine { get; set; }
 
+        [Option("register", Default = false)]
+        public bool Register { get; set; }
+
         public async Task<OutputData> ExecuteAsync()
         {
             List<RepoConfig> repoConfigs = RepoConfigs.All();
@@ -32,6 +35,17 @@ namespace CoreAPI.Cli
             {
                 return new(0, new() { ["repoConfig"] = repoConfig, ["url"] = remoteLink.ToString() }, "(=url=)");
             }
+
+            if (Register)
+            {
+                OutputData registerResult = await new RegisterRepo() { Path = File }.ExecuteAsync();
+                var registeredRepoConfig = (RepoConfig)registerResult.Objects["result"];
+                if (TaskUtils.Try(await RemoteRepoHosts.TryGetRemoteLinkFromPath(this, new List<RepoConfig>() { registeredRepoConfig }), out repoConfig, out remoteLink))
+                {
+                    return new(0, new() { ["repoConfig"] = repoConfig, ["url"] = remoteLink.ToString() }, "(=url=)");
+                }
+            }
+
             return new(1, new(), "");
         }
     }
